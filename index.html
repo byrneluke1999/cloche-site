@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloche</title>
+<meta name="description" content="Cloche is a digital greenhouse for your plants: a private inventory, plant identification and watering reminders.">
+<style>
+  :root { --bg:#FAF7F1; --text:#2E2119; --muted:#6F6157; --line:#DDD2BF; --accent:#5E6E2E; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#16110E; --text:#F4EEE5; --muted:#B9AC9E; --line:#3A2F26; --accent:#A3B566; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--text); font:17px/1.65 "Figtree", system-ui, sans-serif; }
+  main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:48px 24px; }
+  h1 { font-family:"Sora", system-ui, sans-serif; font-size:2.75rem; line-height:1.15; margin:1.25rem 0 .5rem; }
+  .tag { font-size:1.2rem; color:var(--muted); margin:0 0 1.5rem; }
+  .note { max-width:30rem; margin:0 auto; color:var(--muted); }
+  .logo-dark { display:none; }
+  @media (prefers-color-scheme: dark) { .logo-light { display:none; } .logo-dark { display:inline; } }
+  footer { padding:24px; text-align:center; font-size:.9rem; color:var(--muted); border-top:1px solid var(--line); }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <div><svg class="logo-light" width="120" height="120" role="img" aria-label="Cloche" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="512" height="512" role="img" aria-label="Cloche logo: a walnut-framed glass cloche with a sprout inside"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#24402F"/><path d="M60 22 C82 22 100 40 100 66 H60 Z" fill="#2E4F3A"/><path d="M40 84 H60 V102 H40 Z" fill="#2E4F3A"/><path d="M20 84 H100 M40 66 V84 M60 66 V84 M80 66 V84" stroke="#3A5E45" stroke-width="2.5" fill="none"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#7A5A40" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#7A5A40"/></svg><svg class="logo-dark" width="120" height="120" role="img" aria-label="Cloche" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="512" height="512" role="img" aria-label="Cloche logo for dark grounds"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#24402F"/><path d="M60 22 C82 22 100 40 100 66 H60 Z" fill="#2E4F3A"/><path d="M40 84 H60 V102 H40 Z" fill="#2E4F3A"/><path d="M20 84 H100 M40 66 V84 M60 66 V84 M80 66 V84" stroke="#3A5E45" stroke-width="2.5" fill="none"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#C49A78" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#C49A78"/></svg></div>
+  <h1>Cloche</h1>
+  <p class="tag">A digital greenhouse for your plants.</p>
+  <p class="note">Cloche keeps a private inventory of your plants, identifies them from a photo, and reminds you when they need water. We're in a small private beta, with more to come.</p>
+</main>
+<footer>
+  <a href="/privacy/">Privacy policy</a> &middot; <a href="mailto:help@cloche.one">help@cloche.one</a>
+</footer>
+</body>
+</html>
