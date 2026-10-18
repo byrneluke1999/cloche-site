@@ -45,6 +45,10 @@
   .steps .n { font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; font-weight:600; color:var(--accent); }
   .steps h3 { font-size:1.25rem; margin-bottom:6px; }
   .steps p { margin:0; color:var(--muted); font-size:.97rem; line-height:1.55; }
+  /* Demo video: framed like a pane of the greenhouse */
+  .watch h2 { max-width:22ch; }
+  .frame { margin-top:32px; border-radius:22px; overflow:hidden; background:var(--glass); border:6px solid var(--walnut); box-shadow:0 24px 56px rgba(46,33,25,.18); aspect-ratio:16/9; }
+  .frame video { display:block; width:100%; height:100%; object-fit:cover; background:var(--glass); }
   /* Shops: walnut band with a pot label */
   .shops { background:var(--walnut-deep); color:#F4EEE5; }
   .shops .eyebrow { color:var(--sprout); }
@@ -114,6 +118,19 @@
   <rect x="4.0" y="84.4" width="44.0" height="5.6" fill="#7A5A40"/>
   <text x="26.0" y="88.3" text-anchor="middle" font-size="3.1" font-weight="600" fill="#FAF7F1" font-family="Sora, Avenir Next, Helvetica, Arial, sans-serif">Your garden centre</text>
 </svg></div>
+  </div>
+</section>
+
+<section class="watch" id="demo">
+  <div class="wrap">
+    <div class="eyebrow">Watch</div>
+    <h2>See Cloche in Action</h2>
+    <div class="frame">
+      <video controls playsinline preload="none" poster="/video/cloche-poster.jpg" aria-label="Cloche demo: a 45-second walkthrough for plant shops">
+        <source src="/video/cloche-demo.mp4" type="video/mp4">
+        Your browser can't play this video. <a href="/video/cloche-demo.mp4">Download it</a>.
+      </video>
+    </div>
   </div>
 </section>
 
