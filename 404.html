@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="apple-itunes-app" content="app-id=6822829404">
 <title>Cloche</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,6 +23,7 @@
   .code { font:500 1.4rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing:.08em; background:var(--surface); border-radius:12px; padding:14px 18px; color:var(--text); margin:8px 0; }
   .steps { text-align:left; max-width:26rem; padding-left:1.2rem; color:var(--muted); }
   .steps li { margin:.3rem 0; }
+  .button { display:inline-block; background:var(--accent); color:var(--bg); text-decoration:none; font-weight:600; padding:12px 20px; border-radius:12px; }
   footer { padding:24px; text-align:center; font-size:.9rem; color:var(--muted); border-top:1px solid var(--line); }
   a { color:var(--accent); }
   [hidden] { display:none !important; }
@@ -33,14 +35,14 @@
        404 page doubles as the landing page for those links. -->
   <section id="label" hidden>
     <h1>Add this plant to Cloche</h1>
-    <p>This label is for Cloche, a digital greenhouse that tells you when your plants need water.</p>
+    <p>Cloche is a digital greenhouse that works out when your plants need water and reminds you.</p>
     <div class="code" id="code" aria-label="Label code"></div>
+    <p><a class="button" id="store" href="https://apps.apple.com/app/id6822829404">Get Cloche on the App Store</a></p>
     <ol class="steps">
-      <li>Open Cloche on your phone.</li>
-      <li>Tap <strong>Add a plant</strong>, then <strong>Scan a pot label</strong>.</li>
-      <li>Point it at the code on the pot, or type the code above.</li>
+      <li>Install Cloche and sign in.</li>
+      <li>Scan the label on your pot again. It opens straight to adding this plant.</li>
     </ol>
-    <p>Don&rsquo;t have the app yet? Cloche is in a small private beta. Ask in the shop, or write to <a href="mailto:help@cloche.one">help@cloche.one</a>.</p>
+    <p>Already have Cloche? Scan the label with your camera and it opens in the app. Or tap <strong>Add a plant</strong>, then <strong>Scan a pot label</strong>.</p>
   </section>
   <section id="missing" hidden>
     <h1>Page not found</h1>
@@ -58,6 +60,9 @@
       document.getElementById('code').textContent = (match[1] + '-' + match[2]).toUpperCase();
       document.getElementById('label').hidden = false;
       document.title = 'Add this plant to Cloche';
+      // Safari's app banner opens the app on this label if it's installed.
+      var banner = document.querySelector('meta[name="apple-itunes-app"]');
+      banner.setAttribute('content', 'app-id=6822829404, app-argument=' + location.href);
     } else {
       document.getElementById('missing').hidden = false;
     }

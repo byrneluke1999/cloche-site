@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["REPLACE_WITH_TEAM_ID.com.cloche.app"],
+        "components": [{ "/": "/p/*", "comment": "Pot labels open in Cloche" }]
+      }
+    ]
+  }
+}
