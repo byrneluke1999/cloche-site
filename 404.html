@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<meta name="apple-itunes-app" content="app-id=6822829404">
 <title>Cloche</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,12 +36,19 @@
     <h1>Add this plant to Cloche</h1>
     <p>Cloche is a digital greenhouse that works out when your plants need water and reminds you.</p>
     <div class="code" id="code" aria-label="Label code"></div>
-    <p><a class="button" id="store" href="https://apps.apple.com/app/id6822829404">Get Cloche on the App Store</a></p>
-    <ol class="steps">
-      <li>Install Cloche and sign in.</li>
-      <li>Scan the label on your pot again. It opens straight to adding this plant.</li>
-    </ol>
-    <p>Already have Cloche? Scan the label with your camera and it opens in the app. Or tap <strong>Add a plant</strong>, then <strong>Scan a pot label</strong>.</p>
+    <!-- Shown once Cloche is on the App Store (APP_STORE_LIVE in the script below). -->
+    <div id="live" hidden>
+      <p><a class="button" id="store" href="https://apps.apple.com/app/id6822829404">Get Cloche on the App Store</a></p>
+      <ol class="steps">
+        <li>Install Cloche and sign in.</li>
+        <li>Scan the label on your pot again. It opens straight to adding this plant.</li>
+      </ol>
+      <p>Already have Cloche? Scan the label with your camera and it opens in the app. Or tap <strong>Add a plant</strong>, then <strong>Scan a pot label</strong>.</p>
+    </div>
+    <div id="soon" hidden>
+      <p>Cloche isn&rsquo;t on the App Store quite yet. Ask in the shop, or write to <a href="mailto:help@cloche.one">help@cloche.one</a> and we&rsquo;ll tell you the moment it is.</p>
+      <p>Keep your label: this code is already set up for your plant.</p>
+    </div>
   </section>
   <section id="missing" hidden>
     <h1>Page not found</h1>
@@ -54,15 +60,24 @@
 </footer>
 <script>
   (function () {
+    // Flip to true the day Cloche is live on the App Store (check apps.apple.com/app/id6822829404).
+    // Until then the page says it isn't there yet, and the app banner and store button stay off.
+    var APP_STORE_LIVE = false;
+    var APP_STORE_ID = '6822829404';
     // Same pattern the app accepts: three letters or digits, a hyphen, four more.
     var match = /^\/p\/([A-Za-z0-9]{3})-?([A-Za-z0-9]{4})\/?$/.exec(location.pathname);
     if (match) {
       document.getElementById('code').textContent = (match[1] + '-' + match[2]).toUpperCase();
       document.getElementById('label').hidden = false;
       document.title = 'Add this plant to Cloche';
-      // Safari's app banner opens the app on this label if it's installed.
-      var banner = document.querySelector('meta[name="apple-itunes-app"]');
-      banner.setAttribute('content', 'app-id=6822829404, app-argument=' + location.href);
+      document.getElementById(APP_STORE_LIVE ? 'live' : 'soon').hidden = false;
+      if (APP_STORE_LIVE) {
+        // Safari's app banner opens the app on this label if it's installed.
+        var banner = document.createElement('meta');
+        banner.name = 'apple-itunes-app';
+        banner.content = 'app-id=' + APP_STORE_ID + ', app-argument=' + location.href;
+        document.head.appendChild(banner);
+      }
     } else {
       document.getElementById('missing').hidden = false;
     }
