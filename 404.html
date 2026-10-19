@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Cloche</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Figtree:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  :root { --bg:#FAF7F1; --text:#2E2119; --muted:#6F6157; --line:#DDD2BF; --accent:#5E6E2E; --surface:#EFE8DC; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#16110E; --text:#F4EEE5; --muted:#B9AC9E; --line:#3A2F26; --accent:#A3B566; --surface:#261E18; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--text); font:17px/1.65 "Figtree", system-ui, sans-serif; }
+  main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:48px 24px; gap:12px; }
+  h1 { font-family:"Sora", system-ui, sans-serif; font-size:2rem; line-height:1.2; margin:0; }
+  p { margin:0; max-width:30rem; color:var(--muted); }
+  .code { font:500 1.4rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing:.08em; background:var(--surface); border-radius:12px; padding:14px 18px; color:var(--text); margin:8px 0; }
+  .steps { text-align:left; max-width:26rem; padding-left:1.2rem; color:var(--muted); }
+  .steps li { margin:.3rem 0; }
+  .button { display:inline-block; background:var(--accent); color:var(--bg); text-decoration:none; font-weight:600; padding:12px 20px; border-radius:12px; }
+  footer { padding:24px; text-align:center; font-size:.9rem; color:var(--muted); border-top:1px solid var(--line); }
+  a { color:var(--accent); }
+  #live, #soon { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .steps { margin:0; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <!-- A pot label's link, https://cloche.one/p/<code>. GitHub Pages can't route wildcards, so the
+       404 page doubles as the landing page for those links. -->
+  <section id="label" hidden>
+    <h1>Add this plant to Cloche</h1>
+    <p>Cloche is a digital greenhouse that works out when your plants need water and reminds you.</p>
+    <div class="code" id="code" aria-label="Label code"></div>
+    <!-- Shown once Cloche is on the App Store (APP_STORE_LIVE in the script below). -->
+    <div id="live" hidden>
+      <p><a class="button" id="store" href="https://apps.apple.com/app/id6822829404">Get Cloche on the App Store</a></p>
+      <ol class="steps">
+        <li>Install Cloche and sign in.</li>
+        <li>Scan the label on your pot again. It opens straight to adding this plant.</li>
+      </ol>
+      <p>Already have Cloche? Scan the label with your camera and it opens in the app. Or tap <strong>Add a plant</strong>, then <strong>Scan a pot label</strong>.</p>
+    </div>
+    <div id="soon" hidden>
+      <p>Cloche isn&rsquo;t on the App Store quite yet. Ask in the shop, or write to <a href="mailto:help@cloche.one">help@cloche.one</a> and we&rsquo;ll tell you the moment it is.</p>
+      <p>Keep your label: this code is already set up for your plant.</p>
+    </div>
+  </section>
+  <section id="missing" hidden>
+    <h1>Page not found</h1>
+    <p><a href="/">Back to Cloche</a></p>
+  </section>
+</main>
+<footer>
+  <a href="/privacy/">Privacy policy</a> &middot; <a href="mailto:help@cloche.one">help@cloche.one</a>
+</footer>
+<script>
+  (function () {
+    // Flip to true the day Cloche is live on the App Store (check apps.apple.com/app/id6822829404).
+    // Until then the page says it isn't there yet, and the app banner and store button stay off.
+    var APP_STORE_LIVE = false;
+    var APP_STORE_ID = '6822829404';
+    // Same pattern the app accepts: three letters or digits, a hyphen, four more.
+    var match = /^\/p\/([A-Za-z0-9]{3})-?([A-Za-z0-9]{4})\/?$/.exec(location.pathname);
+    if (match) {
+      document.getElementById('code').textContent = (match[1] + '-' + match[2]).toUpperCase();
+      document.getElementById('label').hidden = false;
+      document.title = 'Add this plant to Cloche';
+      document.getElementById(APP_STORE_LIVE ? 'live' : 'soon').hidden = false;
+      if (APP_STORE_LIVE) {
+        // Safari's app banner opens the app on this label if it's installed.
+        var banner = document.createElement('meta');
+        banner.name = 'apple-itunes-app';
+        banner.content = 'app-id=' + APP_STORE_ID + ', app-argument=' + location.href;
+        document.head.appendChild(banner);
+      }
+    } else {
+      document.getElementById('missing').hidden = false;
+    }
+  })();
+</script>
+</body>
+</html>
