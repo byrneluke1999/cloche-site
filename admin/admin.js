@@ -200,13 +200,71 @@ function stickerBox(item) {
   return box;
 }
 
+/** A card's heading: an optional step badge, the title, and anything for the right-hand end. */
+function cardHead(step, title, ...extra) {
+  const done = step === '✓';
+  return h('header', {},
+    step ? h('span', { class: `step${done ? ' done' : ''}`, 'aria-hidden': 'true' }, step) : null,
+    h('h2', {}, title),
+    extra.length ? h('span', { class: 'head-extra' }, extra) : null);
+}
+const lede = (text) => h('p', { class: 'lede' }, text);
+
+// ---- the row of sprouts at the foot of every page, as on cloche.one. The pattern is fixed (seeded)
+// so it doesn't reshuffle every time the page redraws.
+const SPROUT = '<path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/>' +
+  '<path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/>';
+
+function seeded(seed) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function growSprouts(svg) {
+  const rand = seeded(21);
+  const w = svg.clientWidth || 600;
+  const height = 64;
+  let x = 30 + rand() * 20;
+  let prev = 0;
+  let out = '';
+  svg.setAttribute('viewBox', `0 0 ${w} ${height}`);
+  while (x < w - 30) {
+    let sc = 0.8 + rand() * 1.1;
+    if (prev && Math.abs(sc - prev) < 0.3) sc = Math.min(1.9, Math.max(0.8, prev + (rand() < 0.5 ? -0.45 : 0.45)));
+    prev = sc;
+    const flip = rand() < 0.5 ? -1 : 1;
+    out += `<g transform="translate(${x.toFixed(1)} ${height}) scale(${(sc * flip).toFixed(2)} ${sc.toFixed(2)}) translate(-60 -102)">${SPROUT}</g>`;
+    x += 90 + rand() * 130;
+  }
+  svg.innerHTML = out; // fixed markup built here, no input in it
+}
+
+function pageFoot() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'shelf');
+  svg.setAttribute('aria-hidden', 'true');
+  const foot = h('footer', { class: 'foot' }, h('div', { class: 'shelf-wrap' }, svg), h('p', { class: 'small muted' }, 'Cloche admin · private'));
+  requestAnimationFrame(() => {
+    growSprouts(svg);
+    let last = svg.clientWidth;
+    new ResizeObserver(() => {
+      if (Math.abs(svg.clientWidth - last) > 40) { last = svg.clientWidth; growSprouts(svg); }
+    }).observe(svg);
+  });
+  return foot;
+}
+
 const btn = (text, onclick, kind = '', extra = {}) => h('button', { type: 'button', class: `btn ${kind}`.trim(), onclick, ...extra }, text);
 
 // ------------------------------------------------------------------ sign-in
 
 function showScreen(...nodes) {
   clearTimeout(idleTimer);
-  root.replaceChildren(h('div', { class: 'centre' }, h('h1', {}, 'Cloche admin'), ...nodes));
+  root.replaceChildren(h('div', { class: 'centre' }, h('img', { class: 'mark', src: '/favicon.svg', alt: '' }), h('h1', {}, 'Cloche admin'), ...nodes), pageFoot());
 }
 
 function signInScreen(note) {
@@ -459,18 +517,18 @@ const TABS = [
 function render() {
   if (!st.user) return;
   const view = st.tab === 'labels' ? labelsView() : st.tab === 'shops' ? shopsView() : makeView();
-  const top = h('div', { class: 'top' },
+  const top = h('div', { class: 'top' }, h('div', { class: 'wrap bar' },
     h('img', { src: '/favicon.svg', alt: '' }),
     h('h1', {}, 'Cloche admin'),
     h('span', { class: 'who' }, st.user.email),
     btn('Set password', setPassword, 'secondary small'),
-    signOutButton()
-  );
-  const tabs = h('nav', { class: 'tabs', 'aria-label': 'Sections' },
+    btn('Sign out', signOut, 'secondary small')
+  ));
+  const tabs = h('nav', { class: 'tabs', 'aria-label': 'Sections' }, h('div', { class: 'wrap tabrow' },
     TABS.map(([id, name]) => h('button', { type: 'button', 'aria-current': st.tab === id ? 'page' : null, onclick: () => { st.tab = id; render(); } }, name))
-  );
+  ));
   const scroll = window.scrollY;
-  root.replaceChildren(top, tabs, h('main', {}, notice(st.banner?.kind, st.banner?.text), view), queueBar() || document.createDocumentFragment());
+  root.replaceChildren(top, tabs, h('main', { class: 'wrap' }, notice(st.banner?.kind, st.banner?.text), view), pageFoot(), queueBar() || document.createDocumentFragment());
   window.scrollTo(0, scroll);
 }
 
@@ -525,7 +583,8 @@ function shopCard(m, shop) {
   );
   select.value = m.addingShop ? '+new' : m.shopId;
   return h('section', { class: 'card' },
-    h('header', {}, h('span', { class: 'step' }, '1'), h('h2', {}, 'Which shop is the sticker for?')),
+    cardHead('1', 'Which shop is the sticker for?'),
+    lede('The shop’s name is printed on the sticker, and the shop is credited for plants added from it.'),
     h('label', { class: 'field', for: 'shop' }, 'Shop', select),
     m.addingShop ? newShopForm(m) : null,
     shop && !shop.prefix ? h('p', { class: 'notice error' }, 'This shop has no three-character prefix yet, so it can’t have codes. Set one on the Shops tab.') : null
@@ -569,7 +628,7 @@ function plantCard(m) {
   );
   const missing = m.searched && !m.care;
   return h('section', { class: 'card' },
-    h('header', {}, h('span', { class: 'step' }, '2'), h('h2', {}, 'Which plant?')),
+    cardHead('2', 'Which plant?'),
     form,
     missing ? h('div', { class: 'notice' },
       h('p', {}, `Cloche has no care for ${m.species.trim()} yet.`),
@@ -645,7 +704,8 @@ function careCard(m) {
   const field = (label, name, props = {}, hint) => h('label', { class: 'field' }, label,
     h('input', { value: f[name], oninput: (e) => (f[name] = e.target.value), ...props }), hint ? h('span', { class: 'hint' }, hint) : null);
   return h('section', { class: 'card' },
-    h('header', {}, h('span', { class: 'step' }, '3'), h('h2', {}, `Care for ${row.species_scientific}`), status),
+    cardHead('3', `Care for ${row.species_scientific}`, status),
+    lede('Cloche decides how often a plant is watered. Check it, fix anything that’s off, then tick that it’s reviewed.'),
     !isNew ? h('p', { class: 'small muted' }, sources.length ? '' : 'No sources recorded.',
       sources.slice(0, 4).map((s, i) => [i ? ' · ' : 'Sources: ', /^https?:\/\//.test(s.url) ? h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' }, s.title || s.url) : (s.title || '')])) : null,
     h('div', { class: 'grid2' },
@@ -721,7 +781,8 @@ function stickerCard(m, shop) {
   const found = shop && st.tags.find((t) => t.shop_id === shop.id && t.species_scientific === m.care.species_scientific && !t.archived_at);
   const existing = found && m.result?.tag.code !== found.code ? found : null; // not the one just made
   return h('section', { class: 'card' },
-    h('header', {}, h('span', { class: 'step' }, '4'), h('h2', {}, 'The sticker')),
+    cardHead('4', 'The sticker'),
+    lede('What is printed on it. The code and QR are made for you when you create the label.'),
     h('div', { class: 'grid2' },
       h('label', { class: 'field' }, 'Plant name printed on it', h('input', { value: m.commonName, maxlength: 60, oninput: (e) => (m.commonName = e.target.value) }), h('span', { class: 'hint' }, 'The common name, small, with no Latin name.')),
       h('label', { class: 'field' }, 'Shop name printed on it', h('input', { value: m.printName, maxlength: 40, placeholder: shop?.name || '', oninput: (e) => (m.printName = e.target.value) }), h('span', { class: 'hint' }, 'Leave empty to print the shop’s own name. Credit still goes to the shop above.'))),
@@ -779,7 +840,7 @@ function resultCard(m) {
   }
   const queued = st.queue.some((q) => q.code === item.code);
   return h('section', { class: 'card' },
-    h('header', {}, h('span', { class: 'step' }, '✓'), h('h2', {}, `Label ${tag.code} is in the database`)),
+    cardHead('✓', `Label ${tag.code} is in the database`),
     h('p', { class: 'notice ok' }, 'Read back the way the app does on a scan. This is what someone will see:'),
     h('div', { class: 'sticker-row' },
       stickerBox(item),
@@ -813,8 +874,8 @@ function labelsView() {
     h('option', { value: '' }, 'All shops'), st.shops.map((s) => h('option', { value: s.id }, s.name)));
   shopSelect.value = f.shop;
   return h('div', { class: 'card-stack' },
-    h('section', { class: 'card' }, h('h2', {}, 'Labels'),
-      h('div', { class: 'row' },
+    h('section', { class: 'card' }, cardHead(null, 'Labels'), lede('Every label made so far. Reprint a sticker, rename it, or change which shop it belongs to.'),
+      h('div', { class: 'row filters' },
         h('input', { type: 'search', 'aria-label': 'Search labels', placeholder: 'Search code, plant or shop', value: f.text, oninput: (e) => { f.text = e.target.value; refreshTable(); } }),
         shopSelect,
         h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: f.archived, onchange: (e) => { f.archived = e.target.checked; render(); } }), 'Show archived'))),
@@ -929,8 +990,8 @@ function changeShop(tag) {
 function shopsView() {
   return h('div', { class: 'card-stack' },
     h('section', { class: 'card' },
-      h('header', {}, h('h2', {}, 'Shops'), btn('Add a shop', () => editShop(null), 'small')),
-      h('p', { class: 'small muted' }, 'A shop is credited for the plants added from its labels. Counts only, never names.')),
+      cardHead(null, 'Shops', btn('Add a shop', () => editShop(null), 'small')),
+      lede('A shop is credited for the plants added from its labels. You see counts only, never who the people are.')),
     h('div', { class: 'tablewrap' }, h('table', {},
       h('thead', {}, h('tr', {}, ['Shop', 'Prefix', 'Labels', 'Plants added', 'People', 'Watered', ''].map((t) => h('th', {}, t)))),
       h('tbody', {}, st.shops.map((s) => {
