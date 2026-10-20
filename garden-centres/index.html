@@ -72,6 +72,12 @@
   /* Video */
   .frame { margin-top:28px; border-radius:22px; overflow:hidden; background:var(--glass); border:6px solid var(--walnut); box-shadow:0 24px 56px rgba(46,33,25,.18); aspect-ratio:16/9; }
   .frame video { display:block; width:100%; height:100%; object-fit:cover; }
+  /* Down the line */
+  .ideas { display:grid; gap:18px; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); margin:30px 0 0; padding:0; list-style:none; }
+  .ideas li { background:var(--card); border-radius:22px; padding:24px 24px 26px; }
+  .ideas h3 { font-size:1.12rem; margin-bottom:6px; }
+  .ideas p { margin:0; color:var(--muted); font-size:.97rem; line-height:1.55; }
+  .lead { color:var(--muted); max-width:38rem; }
   /* FAQ */
   .faq { display:flex; flex-direction:column; margin-top:24px; border-top:1px solid var(--line); }
   .faq details { border-bottom:1px solid var(--line); }
@@ -189,6 +195,22 @@
         Your browser can't play this video. <a href="/video/cloche-demo.mp4">Download it</a>.
       </video>
     </div>
+  </div>
+</section>
+
+<section id="future">
+  <div class="wrap">
+    <div class="eyebrow">Down the line</div>
+    <h2>Where Cloche is going.</h2>
+    <p class="lead">A few of the ideas we're working towards. The pilot comes first, and what shops and customers tell us decides what gets built.</p>
+    <ul class="ideas">
+      <li><h3>A plant doctor</h3><p>Photograph a struggling plant and get a likely cause and a quick fix.</p></li>
+      <li><h3>What to expect next</h3><p>Each plant's history, plus when it's likely to bloom, grow or need a bigger pot.</p></li>
+      <li><h3>This week in your garden</h3><p>Seasonal jobs and frost alerts, so outdoor plants get looked after too.</p></li>
+      <li><h3>Plan a garden</h3><p>Sun, soil and space worked out, with ideas for what to plant where.</p></li>
+      <li><h3>Plants as gifts</h3><p>Give a plant with its care attached, or hand the watering to a friend while you're away.</p></li>
+      <li><h3>Local shops, built in</h3><p>Find the right plant, pot or compost at an independent shop near you, with offers from the places that sold you your plants.</p></li>
+    </ul>
   </div>
 </section>
 
