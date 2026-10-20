@@ -593,7 +593,7 @@ function careCard(m) {
     h('input', { value: f[name], oninput: (e) => (f[name] = e.target.value), ...props }), hint ? h('span', { class: 'hint' }, hint) : null);
   return h('section', { class: 'card' },
     h('header', {}, h('span', { class: 'step' }, '3'), h('h2', {}, `Care for ${row.species_scientific}`), status),
-    !isNew ? h('p', { class: 'small muted' }, `${row.model ? `Written by ${row.model}. ` : ''}${sources.length ? '' : 'No sources recorded.'}`,
+    !isNew ? h('p', { class: 'small muted' }, sources.length ? '' : 'No sources recorded.',
       sources.slice(0, 4).map((s, i) => [i ? ' · ' : 'Sources: ', /^https?:\/\//.test(s.url) ? h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' }, s.title || s.url) : (s.title || '')])) : null,
     h('div', { class: 'grid2' },
       field('Water every (days)', 'watering_interval_days', { type: 'number', min: 1, max: 365, step: 1, inputmode: 'numeric' }, 'The default the app suggests. People can change it.'),
