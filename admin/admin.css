@@ -101,3 +101,5 @@ dialog form { display: grid; gap: 14px; }
   .sheet { display: grid; grid-template-columns: repeat(3, 52mm); gap: 6mm 3mm; justify-content: center; align-content: start; width: 190mm; height: 277mm; break-after: page; }
   .sheet svg { display: block; }
 }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; }

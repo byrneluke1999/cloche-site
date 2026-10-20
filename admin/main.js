@@ -1,5 +1,5 @@
 import { start } from './admin.js';
-import { SUPABASE_KEY, SUPABASE_URL } from './config.js';
+import { ADMIN_EMAIL, SUPABASE_KEY, SUPABASE_URL } from './config.js';
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
@@ -10,4 +10,4 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   },
 });
 
-start(sb, document.getElementById('app'));
+start(sb, document.getElementById('app'), { adminEmail: ADMIN_EMAIL });

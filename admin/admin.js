@@ -15,6 +15,7 @@ let sb;
 let root;
 let printRoot;
 let idleTimer;
+let adminEmail = ''; // the one admin's address, so sign-in only asks for a password
 
 const st = {
   user: null,
@@ -209,18 +210,33 @@ function showScreen(...nodes) {
 }
 
 function signInScreen(note) {
-  let email = '';
+  // Normally just a password (the admin's address is known to the page). "Email me a code" is the
+  // way in the first time, before a password is set, and if it is forgotten.
+  let mode = adminEmail ? 'password' : 'email';
+  let email = adminEmail;
   let sent = false;
   let busy = false;
   let message = note ? { kind: 'ok', text: note } : null;
 
   const draw = () => {
     const form = h('form', { class: 'card', onsubmit: submit });
-    if (!sent) {
+    if (mode === 'password') {
+      form.append(
+        // For password managers, which look for a username next to the password.
+        h('input', { type: 'email', name: 'username', autocomplete: 'username', value: adminEmail, class: 'sr-only', tabindex: '-1', 'aria-hidden': 'true' }),
+        h('label', { class: 'field' }, 'Password', h('input', { name: 'password', type: 'password', autocomplete: 'current-password', required: true })),
+        notice(message?.kind, message?.text),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn', type: 'submit', disabled: busy }, busy ? 'Checking…' : 'Sign in'),
+          btn('Email me a code instead', () => { mode = 'email'; sent = false; message = null; draw(); }, 'secondary'))
+      );
+    } else if (!sent) {
       form.append(
         h('label', { class: 'field' }, 'Email', h('input', { type: 'email', autocomplete: 'username', required: true, value: email, oninput: (e) => (email = e.target.value.trim()) })),
         notice(message?.kind, message?.text),
-        h('button', { class: 'btn', type: 'submit', disabled: busy }, busy ? 'Sending…' : 'Email me a code')
+        h('div', { class: 'row' },
+          h('button', { class: 'btn', type: 'submit', disabled: busy }, busy ? 'Sending…' : 'Email me a code'),
+          adminEmail ? btn('Use my password', () => { mode = 'password'; message = null; draw(); }, 'secondary') : null)
       );
     } else {
       form.append(
@@ -229,11 +245,11 @@ function signInScreen(note) {
         notice(message?.kind, message?.text),
         h('div', { class: 'row' },
           h('button', { class: 'btn', type: 'submit', disabled: busy }, busy ? 'Checking…' : 'Sign in'),
-          btn('Use another email', () => { sent = false; message = null; draw(); }, 'secondary'))
+          btn('Back', () => { sent = false; message = null; draw(); }, 'secondary'))
       );
     }
     showScreen(form);
-    form.querySelector('input')?.focus();
+    form.querySelector('input:not(.sr-only)')?.focus();
   };
 
   async function submit(e) {
@@ -241,8 +257,18 @@ function signInScreen(note) {
     busy = true;
     message = null;
     const code = e.target.elements.code?.value.trim();
+    const password = e.target.elements.password?.value;
     draw();
     try {
+      if (mode === 'password') {
+        try {
+          await ok(sb.auth.signInWithPassword({ email: adminEmail, password }));
+        } catch {
+          throw new Error('That didn’t work. If you haven’t set a password yet, use “Email me a code instead”.');
+        }
+        busy = false;
+        return afterSignIn();
+      }
       if (!sent) {
         // shouldCreateUser: false, so this page can never create an account.
         await ok(sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } }));
@@ -253,13 +279,39 @@ function signInScreen(note) {
         return afterSignIn();
       }
     } catch (err) {
-      message = { kind: 'error', text: sent ? 'That code didn’t work. It may be wrong or out of date.' : explain(err) };
+      message = { kind: 'error', text: mode === 'password' || !sent ? explain(err) : 'That code didn’t work. It may be wrong or out of date.' };
     }
     busy = false;
     draw();
   }
 
   draw();
+}
+
+// ------------------------------------------------------------------ password
+
+function setPassword() {
+  let pw = '';
+  let again = '';
+  const err = h('div', {});
+  const body = h('div', { class: 'grid2' },
+    h('input', { type: 'email', name: 'username', autocomplete: 'username', value: st.user.email, class: 'sr-only', tabindex: '-1', 'aria-hidden': 'true' }),
+    h('label', { class: 'field' }, 'New password', h('input', { type: 'password', autocomplete: 'new-password', minlength: 12, oninput: (e) => (pw = e.target.value) }), h('span', { class: 'hint' }, 'At least 12 characters. A password manager’s suggestion is ideal.')),
+    h('label', { class: 'field' }, 'Again', h('input', { type: 'password', autocomplete: 'new-password', oninput: (e) => (again = e.target.value) })),
+    err);
+  modal('Set your password', body, (close) => [
+    btn('Save password', async () => {
+      if (pw.length < 12) return err.replaceChildren(notice('error', 'Use at least 12 characters.'));
+      if (pw !== again) return err.replaceChildren(notice('error', 'The two passwords don’t match.'));
+      try {
+        await ok(sb.auth.updateUser({ password: pw }));
+        close();
+        st.banner = { kind: 'ok', text: 'Password saved. Next time, sign in with it.' };
+        render();
+      } catch (e) { err.replaceChildren(notice('error', explain(e))); }
+    }),
+    btn('Cancel', close, 'secondary'),
+  ]);
 }
 
 // ------------------------------------------------------------------ MFA
@@ -411,6 +463,7 @@ function render() {
     h('img', { src: '/favicon.svg', alt: '' }),
     h('h1', {}, 'Cloche admin'),
     h('span', { class: 'who' }, st.user.email),
+    btn('Set password', setPassword, 'secondary small'),
     signOutButton()
   );
   const tabs = h('nav', { class: 'tabs', 'aria-label': 'Sections' },
@@ -917,9 +970,10 @@ function editShop(shop) {
 
 // ------------------------------------------------------------------ start
 
-/** Starts the page in `rootEl` using a Supabase client. */
-export async function start(client, rootEl) {
+/** Starts the page in `rootEl` using a Supabase client. `options.adminEmail` is the admin's address. */
+export async function start(client, rootEl, options = {}) {
   sb = client;
+  adminEmail = options.adminEmail || '';
   root = rootEl;
   printRoot = document.getElementById('print-root');
   st.queue = loadQueue();
