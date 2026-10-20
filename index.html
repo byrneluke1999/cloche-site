@@ -36,7 +36,7 @@
   section { padding:72px 0; }
   .eyebrow { font:600 .75rem/1 "Sora", sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
   h2 { font-size:clamp(1.9rem, 5vw, 2.8rem); line-height:1.08; letter-spacing:-.03em; margin-bottom:18px; max-width:18ch; }
-  .steps { display:grid; gap:20px; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); margin:36px 0 0; padding:0; list-style:none; }
+  .steps { display:grid; gap:20px; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); margin:36px 0 0; padding:0; list-style:none; }
   .steps li { background:var(--card); border-radius:22px; padding:26px 24px 28px; display:flex; flex-direction:column; gap:2px; }
   .steps .ico { width:56px; height:56px; margin-bottom:16px; }
   .steps .ico svg { width:56px; height:56px; }
@@ -66,9 +66,38 @@
   .contact h2 { margin-inline:auto; }
   .btn { display:inline-block; background:var(--accent); color:var(--bg); font:600 1.05rem "Sora", sans-serif; padding:14px 28px; border-radius:999px; text-decoration:none; }
   footer { padding:24px; text-align:center; font-size:.9rem; color:var(--muted); border-top:1px solid var(--line); }
+  /* Top bar: the two sides of Cloche */
+  html { scroll-behavior:smooth; scroll-padding-top:72px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } }
+  .topnav { position:sticky; top:0; z-index:10; background:color-mix(in srgb, var(--bg) 90%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  .topnav .bar { max-width:68rem; margin:0 auto; padding:0 24px; height:58px; display:flex; align-items:center; gap:6px; }
+  .topnav .mark { display:flex; align-items:center; gap:9px; font:700 1.15rem/1 "Sora", sans-serif; letter-spacing:-.02em; color:var(--text); text-decoration:none; margin-right:auto; }
+  .topnav .mark svg { width:28px; height:28px; }
+  .topnav .m-dark { display:none; }
+  @media (prefers-color-scheme: dark) { .topnav .m-light { display:none; } .topnav .m-dark { display:block; } }
+  .topnav a.nav { color:var(--muted); text-decoration:none; font:500 .93rem "Figtree", sans-serif; padding:8px 13px; border-radius:999px; white-space:nowrap; }
+  .topnav a.nav:hover { background:var(--card); color:var(--text); }
+  .topnav a.nav.here { color:var(--text); background:var(--card); }
+  .topnav a.nav.shop { color:var(--walnut); }
+  @media (max-width: 560px) { .topnav .bar { padding:0 14px; } .topnav .mark span { display:none; } .topnav a.nav { padding:8px 10px; font-size:.88rem; } .topnav a.nav.contact { display:none; } }
+  /* Two ways in, under the hero */
+  .doors { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:32px 0 0; }
+  .hero .btn { background:var(--sprout); color:#16110E; }
+  .btn.ghost { background:transparent; color:inherit; box-shadow:inset 0 0 0 2px currentColor; }
+  .hero .btn.ghost { color:var(--linen); background:transparent; }
+  /* Plant lovers */
+  .lead { font-size:1.12rem; color:var(--muted); max-width:36rem; margin:0 0 4px; }
+  .soon { margin-top:32px; background:var(--card); border-radius:22px; padding:22px 26px; display:flex; flex-wrap:wrap; gap:14px 28px; align-items:center; justify-content:space-between; }
+  .soon strong { display:block; font:600 1.1rem "Sora", sans-serif; letter-spacing:-.01em; }
+  .soon span { color:var(--muted); font-size:.97rem; }
+  /* The demo sits in the shop band */
+  .shops .watchrow { margin-top:64px; }
+  .shops .watchrow h3 { font-size:1.35rem; margin-bottom:18px; color:#F4EEE5; }
+  .shops .frame { margin-top:0; }
 </style>
 </head>
 <body>
+<nav class="topnav" aria-label="Main"><div class="bar"><a class="mark" href="/"><svg class="m-light" viewBox="0 0 120 120" aria-hidden="true"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#24402F"/><path d="M60 22 C82 22 100 40 100 66 H60 Z" fill="#2E4F3A"/><path d="M40 84 H60 V102 H40 Z" fill="#2E4F3A"/><path d="M20 84 H100 M40 66 V84 M60 66 V84 M80 66 V84" stroke="#3A5E45" stroke-width="2.5" fill="none"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#7A5A40" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#7A5A40"/></svg><svg class="m-dark" viewBox="0 0 120 120" aria-hidden="true"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#24402F"/><path d="M60 22 C82 22 100 40 100 66 H60 Z" fill="#2E4F3A"/><path d="M40 84 H60 V102 H40 Z" fill="#2E4F3A"/><path d="M20 84 H100 M40 66 V84 M60 66 V84 M80 66 V84" stroke="#3A5E45" stroke-width="2.5" fill="none"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#C49A78" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#C49A78"/></svg><span>Cloche</span></a><a class="nav " href="/#plants">For plant lovers</a><a class="nav shop" href="/garden-centres/">For garden centres</a><a class="nav contact" href="/#contact">Contact</a></div></nav>
 <main>
 <header class="hero">
   <div class="wrap">
@@ -76,25 +105,34 @@
     <div class="brand">Cloche</div>
     <h1>Every plant deserves<br><em>a shot at life.</em></h1>
     <p class="lede">Cloche is your digital greenhouse. It knows who each of your plants are, what they need and treats them as individuals.</p>
+    <div class="doors">
+      <a class="btn" href="#plants">I look after plants</a>
+      <a class="btn ghost" href="#shops">I run a garden centre or plant shop</a>
+    </div>
   </div>
   <svg class="shelf" id="shelf" aria-hidden="true"></svg>
   <div class="plank"></div>
 </header>
 
-<section>
+<section id="plants">
   <div class="wrap">
-    <div class="eyebrow">How it works</div>
+    <div class="eyebrow">For plant lovers</div>
     <h2>Four steps. No green thumb needed.</h2>
+    <p class="lead">Cloche works out what each of your plants is, how to look after it and when it needs water, then keeps its story as it grows.</p>
   <ol class="steps">
     <li><span class="ico water"><svg class="w-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#E6EBD3"/><g transform="translate(12 12) scale(0.8) translate(-12 -12)"><path d="M5 8.2 H7.6 L9 6 H15 L16.4 8.2 H19 a2 2 0 0 1 2 2 V17 a2 2 0 0 1 -2 2 H5 a2 2 0 0 1 -2 -2 V10.2 a2 2 0 0 1 2 -2 Z" fill="none" stroke="#5E6E2E" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/><g transform="translate(12 17.2) scale(0.27) translate(-60 -102)"><path d="M60 102 V87.6" stroke="#5E6E2E" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#5E6E2E"/></g></g></svg><svg class="w-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2C331C"/><g transform="translate(12 12) scale(0.8) translate(-12 -12)"><path d="M5 8.2 H7.6 L9 6 H15 L16.4 8.2 H19 a2 2 0 0 1 2 2 V17 a2 2 0 0 1 -2 2 H5 a2 2 0 0 1 -2 -2 V10.2 a2 2 0 0 1 2 -2 Z" fill="none" stroke="#A3B566" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/><g transform="translate(12 17.2) scale(0.27) translate(-60 -102)"><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/></g></g></svg></span><span class="n">Step 1</span><h3>Add a plant</h3><p>Take a photo and Cloche suggests what it is. You confirm the right one, or type the name yourself.</p></li>
     <li><span class="ico water"><svg class="w-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#DCEBF5"/><g transform="translate(12 12) scale(0.82) translate(-12 -12)"><path d="M12 3.5 C9.4 7 6 10.6 6 14.8 a6 6 0 0 0 12 0 C18 10.6 14.6 7 12 3.5 Z" fill="#2F5F86"/><g transform="translate(12 19.2) scale(0.27) translate(-60 -102)"><path d="M60 102 V87.6" stroke="#DCEBF5" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#DCEBF5"/></g></g></svg><svg class="w-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1E2F3B"/><g transform="translate(12 12) scale(0.82) translate(-12 -12)"><path d="M12 3.5 C9.4 7 6 10.6 6 14.8 a6 6 0 0 0 12 0 C18 10.6 14.6 7 12 3.5 Z" fill="#9CC4E4"/><g transform="translate(12 19.2) scale(0.27) translate(-60 -102)"><path d="M60 102 V87.6" stroke="#1E2F3B" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#1E2F3B"/></g></g></svg></span><span class="n">Step 2</span><h3>Get the care</h3><p>See how much light and water it likes, with a sensible watering schedule filled in. Change it to suit your home.</p></li>
     <li><span class="ico water"><svg class="w-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#E6EBD3"/><g transform="translate(12 12) scale(0.62) translate(-12 -12)" fill="none" stroke="#5E6E2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></g></svg><svg class="w-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2C331C"/><g transform="translate(12 12) scale(0.62) translate(-12 -12)" fill="none" stroke="#A3B566" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></g></svg></span><span class="n">Step 3</span><h3>Get a nudge</h3><p>Cloche reminds you when a plant is thirsty. Tap once to say you've watered it.</p></li>
     <li><span class="ico water"><svg class="w-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#E6EBD3"/><g transform="translate(12 12) scale(0.42) translate(-60.6 -88.8)"><path d="M60 102 V87.6" stroke="#5E6E2E" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#5E6E2E"/></g></svg><svg class="w-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2C331C"/><g transform="translate(12 12) scale(0.42) translate(-60.6 -88.8)"><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/></g></svg></span><span class="n">Step 4</span><h3>Watch it grow</h3><p>Add photos over time and see each plant's history, from the day you brought it home.</p></li>
   </ol>
+    <div class="soon">
+      <div><strong>Coming to the App Store</strong><span>Want to know the moment it's ready? Email us and we'll tell you.</span></div>
+      <a class="btn" href="mailto:help@cloche.one?subject=Tell%20me%20when%20Cloche%20is%20ready">Tell me when it's ready</a>
+    </div>
   </div>
 </section>
 
-<section class="shops">
+<section class="shops" id="shops">
   <div class="wrap cols">
     <div>
       <div class="eyebrow">For garden centres and plant shops</div>
@@ -123,12 +161,8 @@
   <text x="26.0" y="88.3" text-anchor="middle" font-size="3.1" font-weight="600" fill="#FAF7F1" font-family="Sora, Avenir Next, Helvetica, Arial, sans-serif">Your garden centre</text>
 </svg></div>
   </div>
-</section>
-
-<section class="watch" id="demo">
-  <div class="wrap">
-    <div class="eyebrow">Watch</div>
-    <h2>See Cloche in Action</h2>
+  <div class="wrap watchrow" id="demo">
+    <h3>See Cloche in action</h3>
     <div class="frame">
       <video controls playsinline preload="none" poster="/video/cloche-poster.jpg" aria-label="Cloche demo: a 45-second walkthrough for plant shops">
         <source src="/video/cloche-demo.mp4" type="video/mp4">
@@ -138,7 +172,7 @@
   </div>
 </section>
 
-<section class="contact">
+<section class="contact" id="contact">
   <div class="wrap">
     <div class="eyebrow">Get in touch</div>
     <h2>Questions? Feedback? A shop we should meet?</h2>
@@ -147,7 +181,7 @@
 </section>
 </main>
 <footer>
-  <a href="/privacy/">Privacy policy</a> &middot; <a href="/delete-account/">Delete your account</a> &middot; <a href="mailto:help@cloche.one">help@cloche.one</a>
+  <a href="/#plants">For plant lovers</a> &middot; <a href="/garden-centres/">For garden centres</a> &middot; <a href="/privacy/">Privacy policy</a> &middot; <a href="/delete-account/">Delete your account</a> &middot; <a href="mailto:help@cloche.one">help@cloche.one</a>
 </footer>
 <script>
 (function () {
