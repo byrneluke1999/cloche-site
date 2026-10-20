@@ -296,12 +296,12 @@ function setPassword() {
   const err = h('div', {});
   const body = h('div', { class: 'grid2' },
     h('input', { type: 'email', name: 'username', autocomplete: 'username', value: st.user.email, class: 'sr-only', tabindex: '-1', 'aria-hidden': 'true' }),
-    h('label', { class: 'field' }, 'New password', h('input', { type: 'password', autocomplete: 'new-password', minlength: 12, oninput: (e) => (pw = e.target.value) }), h('span', { class: 'hint' }, 'At least 12 characters. A password manager’s suggestion is ideal.')),
+    h('label', { class: 'field' }, 'New password', h('input', { type: 'password', autocomplete: 'new-password', minlength: 6, oninput: (e) => (pw = e.target.value) }), h('span', { class: 'hint' }, 'At least 6 characters.')),
     h('label', { class: 'field' }, 'Again', h('input', { type: 'password', autocomplete: 'new-password', oninput: (e) => (again = e.target.value) })),
     err);
   modal('Set your password', body, (close) => [
     btn('Save password', async () => {
-      if (pw.length < 12) return err.replaceChildren(notice('error', 'Use at least 12 characters.'));
+      if (pw.length < 6) return err.replaceChildren(notice('error', 'Use at least 6 characters.'));
       if (pw !== again) return err.replaceChildren(notice('error', 'The two passwords don’t match.'));
       try {
         await ok(sb.auth.updateUser({ password: pw }));
