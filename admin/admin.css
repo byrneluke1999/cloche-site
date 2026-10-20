@@ -34,6 +34,7 @@ a { color: var(--accent); }
 .tabs { border-bottom: 1px solid var(--line); background: var(--card); }
 .tabrow { display: flex; gap: 4px; overflow-x: auto; }
 .tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 12px 14px; font: inherit; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.tabs button:first-child { padding-left: 0; }
 .tabs button:hover { color: var(--text); }
 .tabs button[aria-current="page"] { color: var(--text); border-bottom-color: var(--accent); }
 main { flex: 1; padding-top: 20px; padding-bottom: 32px; display: grid; gap: 16px; align-content: start; }
@@ -125,3 +126,23 @@ dialog form { display: grid; gap: 14px; }
 
 .filters input[type="search"] { flex: 1 1 240px; width: auto; }
 .filters select { flex: 0 1 200px; width: auto; }
+
+/* phone widths */
+@media (max-width: 640px) {
+  .bar h1 { flex-basis: calc(100% - 44px); }
+  .bar .who { order: 1; flex-basis: 100%; overflow-wrap: anywhere; margin-top: -6px; }
+  .bar .btn { order: 2; }
+  .tabrow { gap: 16px; }
+  .tablewrap td:first-child { min-width: 160px; }
+  .filters select { flex: 1 1 100%; width: 100%; }
+  .sticker-row .actions { min-width: 0; flex-basis: 100%; }
+  /* the label list stacks into one card per label, so its buttons stay on screen */
+  #label-table .tablewrap, #label-table { overflow: visible; }
+  #label-table table, #label-table tbody, #label-table tr, #label-table td { display: block; }
+  #label-table thead { display: none; }
+  #label-table tr { padding: 12px 14px; border-bottom: 1px solid var(--line); display: grid; gap: 2px; }
+  #label-table tr:last-child { border-bottom: 0; }
+  #label-table td { padding: 0; border: 0; min-width: 0; }
+  #label-table td.actions { white-space: normal; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  #label-table td.actions .btn { margin-right: 0; }
+}
