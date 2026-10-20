@@ -29,7 +29,8 @@
   .btn { display:inline-block; background:var(--accent); color:var(--on-accent); font:600 1rem "Sora", sans-serif; padding:14px 26px; border-radius:999px; text-decoration:none; }
   .btn.ghost { background:transparent; color:inherit; box-shadow:inset 0 0 0 2px currentColor; }
   /* Hero */
-  .hero { background:var(--glass); color:var(--linen); padding:56px 0 64px; text-align:center; }
+  .hero { background:var(--glass); color:var(--linen); padding:56px 0 0; text-align:center; overflow:hidden; }
+  .shelf { display:block; width:100%; height:64px; margin-top:40px; }
   .hero .eyebrow { color:var(--sprout); }
   .hero svg.hero-logo { width:96px; height:96px; display:block; margin:0 auto 22px; }
   .hero h1 { font-size:clamp(2.2rem, 7vw, 3.8rem); line-height:1.05; letter-spacing:-.04em; max-width:16ch; margin:0 auto; }
@@ -108,6 +109,7 @@
       <a class="btn ghost" href="mailto:help@cloche.one?subject=Cloche%20for%20our%20shop">Get in touch</a>
     </div>
   </div>
+  <svg class="shelf" id="shelf" aria-hidden="true"></svg>
 </header>
 <div class="plank"></div>
 
@@ -254,5 +256,31 @@
 <footer>
   <a href="/">Cloche</a> &middot; <a href="/privacy/">Privacy policy</a> &middot; <a href="mailto:help@cloche.one">help@cloche.one</a>
 </footer>
+<script>
+(function () {
+  var svg = document.getElementById('shelf');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+  function grow() {
+    var prev = 0, w = svg.clientWidth || 600, h = 64, x = 30 + Math.random() * 20, out = '';
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    while (x < w - 30) {
+      var sc = 0.8 + Math.random() * 1.1;
+      if (prev && Math.abs(sc - prev) < 0.3) sc = Math.min(1.9, Math.max(0.8, prev + (Math.random() < 0.5 ? -0.45 : 0.45)));
+      prev = sc;
+      var flip = Math.random() < 0.5 ? -1 : 1;
+      var tilt = 0;
+      out += '<g transform="translate(' + x.toFixed(1) + ' ' + h + ') rotate(' + tilt.toFixed(1) + ') scale(' + (sc * flip).toFixed(2) + ' ' + sc.toFixed(2) + ') translate(-60 -102)">' +
+        '<path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/>' +
+        '<path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/></g>';
+      x += 90 + Math.random() * 130;
+    }
+    svg.innerHTML = out;
+  }
+  grow();
+  var last = svg.clientWidth;
+  window.addEventListener('resize', function () { if (Math.abs(svg.clientWidth - last) > 40) { last = svg.clientWidth; grow(); } });
+})();
+</script>
 </body>
 </html>
