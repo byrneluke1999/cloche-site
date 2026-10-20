@@ -85,6 +85,37 @@
   .hero .btn { background:var(--sprout); color:#16110E; }
   .btn.ghost { background:transparent; color:inherit; box-shadow:inset 0 0 0 2px currentColor; }
   .hero .btn.ghost { color:var(--linen); background:transparent; }
+  /* The greenhouse, drawn as the app draws it */
+  :root { --glass-tint:#DDE8DC; --shelf-top:#C49A78; --shelf-front:#7A5A40; --plinth:#C49A78; --on-shelf:#FAF7F1; --drawing:#E2D7C5; --water-disc:#DCEBF5; --water-glyph:#2F5F86; --frame:#7A5A40; }
+  @media (prefers-color-scheme: dark) { :root { --glass-tint:#1B2B21; --shelf-top:#B58E6B; --shelf-front:#5E4531; --plinth:#A57F5C; --on-shelf:#F4EEE5; --drawing:#4A4036; --water-disc:#9CC4E4; --water-glyph:#1E2F3B; --frame:#C49A78; } }
+  .gh { display:grid; gap:40px 64px; grid-template-columns:minmax(0,1fr); align-items:center; margin-top:64px; }
+  @media (min-width: 860px) { .gh { grid-template-columns:minmax(0,1fr) minmax(0,.9fr); } }
+  .gh h3 { font-size:clamp(1.6rem, 4vw, 2.2rem); line-height:1.1; letter-spacing:-.03em; margin-bottom:14px; }
+  .gh p { color:var(--muted); max-width:32rem; }
+  .gh ul { margin:0; padding-left:1.15rem; display:flex; flex-direction:column; gap:8px; color:var(--muted); }
+  .gh li::marker { color:var(--accent); }
+  .ghmock { display:flex; justify-content:center; }
+  .gh .phone { width:min(100%, 300px); border-radius:38px; padding:10px; background:var(--frame); box-shadow:0 18px 40px rgba(46,33,25,.2); }
+  .gh .screen { background:var(--bg); border-radius:30px; padding:16px 14px 18px; display:flex; flex-direction:column; gap:12px; }
+  .gh .ttl { font:600 1.05rem "Sora", sans-serif; text-align:center; letter-spacing:-.01em; }
+  .gh .seg { display:flex; background:var(--card); border-radius:999px; padding:3px; font:500 .8rem "Figtree", sans-serif; color:var(--muted); }
+  .gh .seg span { flex:1; text-align:center; padding:6px 0; border-radius:999px; }
+  .gh .seg .on { background:var(--bg); color:var(--accent); font-weight:600; }
+  .frame3 { background:var(--glass-tint); border:6px solid var(--frame); border-radius:18px; padding:14px 10px 10px; display:flex; flex-direction:column; gap:12px; }
+  .shelfrow { display:grid; grid-template-columns:repeat(3, 1fr); gap:0 8px; padding:0 2px 0; background:linear-gradient(var(--shelf-front), var(--shelf-front)) bottom/100% 22px no-repeat; border-radius:4px; }
+  .slot { display:flex; flex-direction:column; align-items:center; min-width:0; }
+  .tile { position:relative; width:100%; aspect-ratio:1; border-radius:14px 14px 6px 6px; background:var(--drawing); border-bottom:3px solid var(--shelf-top); display:grid; place-items:center; }
+  .tile .pl { width:78%; height:78%; }
+  .tile.ghost { background:#E6EBD3; border:2px dashed #A3B566; border-bottom:3px solid #A3B566; }
+  .tile.ghost svg { width:100%; height:100%; }
+  @media (prefers-color-scheme: dark) { .tile.ghost { background:#2C331C; } .tile .pl { filter:brightness(1.75) saturate(.95); } }
+  .tile .drop { position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; background:var(--water-disc); display:grid; place-items:center; }
+  .tile .drop svg { width:13px; height:13px; }
+  .plinth { width:78%; height:8px; background:var(--plinth); border-radius:0 0 3px 3px; }
+  .nm { height:22px; display:flex; align-items:center; font:500 .66rem "Figtree", sans-serif; color:var(--on-shelf); letter-spacing:.01em; white-space:nowrap; }
+  .vals { margin-top:56px; display:grid; gap:14px; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); border-top:1px solid var(--line); padding-top:28px; }
+  .vals strong { display:block; font:600 1.02rem "Sora", sans-serif; letter-spacing:-.01em; margin-bottom:2px; }
+  .vals span { color:var(--muted); font-size:.96rem; }
   /* Plant lovers */
   .lead { font-size:1.12rem; color:var(--muted); max-width:36rem; margin:0 0 4px; }
   .soon { margin-top:32px; background:var(--card); border-radius:22px; padding:22px 26px; display:flex; flex-wrap:wrap; gap:14px 28px; align-items:center; justify-content:space-between; }
@@ -121,6 +152,35 @@
     <li><span class="ico water"><svg class="w-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#E6EBD3"/><g transform="translate(12 12) scale(0.62) translate(-12 -12)" fill="none" stroke="#5E6E2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></g></svg><svg class="w-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2C331C"/><g transform="translate(12 12) scale(0.62) translate(-12 -12)" fill="none" stroke="#A3B566" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></g></svg></span><span class="n">Step 3</span><h3>Get a nudge</h3><p>Cloche reminds you when a plant is thirsty. Tap once to say you've watered it.</p></li>
     <li><span class="ico water"><svg class="w-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#E6EBD3"/><g transform="translate(12 12) scale(0.42) translate(-60.6 -88.8)"><path d="M60 102 V87.6" stroke="#5E6E2E" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#5E6E2E"/></g></svg><svg class="w-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="52" height="52" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#2C331C"/><g transform="translate(12 12) scale(0.42) translate(-60.6 -88.8)"><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/></g></svg></span><span class="n">Step 4</span><h3>Watch it grow</h3><p>Add photos over time and see each plant's history, from the day you brought it home.</p></li>
   </ol>
+    <div class="gh">
+      <div class="ghtext">
+        <div class="eyebrow">Your greenhouse</div>
+        <h3>Every plant on its own shelf.</h3>
+        <p>Each plant you add stands on a shelf in your greenhouse, with its own photo, or its own colours until you take one. Anything thirsty wears a small water drop, so you can see what needs you at a glance.</p>
+        <ul>
+          <li>Tap a plant for its care and its history</li>
+          <li>Indoors and outdoors, side by side</li>
+          <li>Add a plant from the first slot, always in view</li>
+        </ul>
+      </div>
+      <div class="ghmock" role="img" aria-label="The Cloche greenhouse: six plants on two walnut shelves behind glass, with a water drop on a thirsty basil">
+        <div class="phone">
+          <div class="screen">
+            <div class="ttl">Your greenhouse</div>
+            <div class="seg"><span class="on">Indoors</span><span>Outdoors</span></div>
+            <div class="frame3">
+              <div class="shelfrow"><div class="slot addslot"><span class="tile ghost"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="17" fill="#A3B566" fill-opacity=".3"/><g transform="translate(30 31) scale(0.2) translate(-60.6 -88.8)"><path d="M60 102 V87.6" stroke="#5E6E2E" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#5E6E2E"/></g><path d="M44 12 v8 M40 16 h8" stroke="#5E6E2E" stroke-width="2.4" stroke-linecap="round"/></svg></span><span class="plinth"></span><span class="nm">Add a plant</span></div><div class="slot "><span class="tile"><svg class="pl" viewBox="0 0 60 60" fill="none" aria-hidden="true" style="--a:#27500A;--b:#3B6D11;--c:#639922"><path d="M30 56 C30 40 28 30 30 16" stroke="var(--a)" stroke-width="3.4" stroke-linecap="round"/><ellipse cx="21" cy="41" rx="12" ry="6.4" transform="rotate(-24 21 41)" fill="var(--b)"/><ellipse cx="39" cy="31" rx="12" ry="6.4" transform="rotate(24 39 31)" fill="var(--c)"/><ellipse cx="23" cy="22" rx="9.5" ry="5.2" transform="rotate(-30 23 22)" fill="var(--b)"/></svg></span><span class="plinth"></span><span class="nm">Ferny</span></div><div class="slot "><span class="tile"><svg class="pl" viewBox="0 0 60 60" fill="none" aria-hidden="true" style="--a:#3B6D11;--b:#639922;--c:#97C459"><path d="M30 56 C30 40 28 30 30 16" stroke="var(--a)" stroke-width="3.4" stroke-linecap="round"/><ellipse cx="21" cy="41" rx="12" ry="6.4" transform="rotate(-24 21 41)" fill="var(--b)"/><ellipse cx="39" cy="31" rx="12" ry="6.4" transform="rotate(24 39 31)" fill="var(--c)"/><ellipse cx="23" cy="22" rx="9.5" ry="5.2" transform="rotate(-30 23 22)" fill="var(--b)"/></svg><span class="drop"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 C8 1.5 3 7 3 10 a5 5 0 0 0 10 0 C13 7 8 1.5 8 1.5 Z" fill="var(--water-glyph)"/><path d="M8 13 V9.6 M8 10.6 C8 9.2 9 8.6 10.2 8.6 C10.2 9.8 9.4 10.6 8 10.6 Z" stroke="var(--water-disc)" stroke-width="1" fill="var(--water-disc)" stroke-linecap="round"/></svg></span></span><span class="plinth"></span><span class="nm">Basil</span></div></div>
+              <div class="shelfrow"><div class="slot "><span class="tile"><svg class="pl" viewBox="0 0 60 60" fill="none" aria-hidden="true" style="--a:#173404;--b:#27500A;--c:#3B6D11"><path d="M30 56 C30 40 28 30 30 16" stroke="var(--a)" stroke-width="3.4" stroke-linecap="round"/><ellipse cx="21" cy="41" rx="12" ry="6.4" transform="rotate(-24 21 41)" fill="var(--b)"/><ellipse cx="39" cy="31" rx="12" ry="6.4" transform="rotate(24 39 31)" fill="var(--c)"/><ellipse cx="23" cy="22" rx="9.5" ry="5.2" transform="rotate(-30 23 22)" fill="var(--b)"/></svg></span><span class="plinth"></span><span class="nm">Monstera</span></div><div class="slot "><span class="tile"><svg class="pl" viewBox="0 0 60 60" fill="none" aria-hidden="true" style="--a:#0F6E56;--b:#1D9E75;--c:#5DCAA5"><path d="M30 56 C30 40 28 30 30 16" stroke="var(--a)" stroke-width="3.4" stroke-linecap="round"/><ellipse cx="21" cy="41" rx="12" ry="6.4" transform="rotate(-24 21 41)" fill="var(--b)"/><ellipse cx="39" cy="31" rx="12" ry="6.4" transform="rotate(24 39 31)" fill="var(--c)"/><ellipse cx="23" cy="22" rx="9.5" ry="5.2" transform="rotate(-30 23 22)" fill="var(--b)"/></svg></span><span class="plinth"></span><span class="nm">Snake plant</span></div><div class="slot "><span class="tile"><svg class="pl" viewBox="0 0 60 60" fill="none" aria-hidden="true" style="--a:#3B6D11;--b:#97C459;--c:#C0DD97"><path d="M30 56 C30 40 28 30 30 16" stroke="var(--a)" stroke-width="3.4" stroke-linecap="round"/><ellipse cx="21" cy="41" rx="12" ry="6.4" transform="rotate(-24 21 41)" fill="var(--b)"/><ellipse cx="39" cy="31" rx="12" ry="6.4" transform="rotate(24 39 31)" fill="var(--c)"/><ellipse cx="23" cy="22" rx="9.5" ry="5.2" transform="rotate(-30 23 22)" fill="var(--b)"/></svg></span><span class="plinth"></span><span class="nm">Pothos</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="vals">
+      <div><strong>Private by default</strong><span>Your photos and plants are yours. No ads.</span></div>
+      <div><strong>Suggestions, not orders</strong><span>Care advice you can change for your own home.</span></div>
+      <div><strong>Calm, not nagging</strong><span>One reminder a day, at the time you choose.</span></div>
+    </div>
     <div class="soon">
       <div><strong>Coming to the App Store</strong><span>Want to know the moment it's ready? Email us and we'll tell you.</span></div>
       <a class="btn" href="mailto:help@cloche.one?subject=Tell%20me%20when%20Cloche%20is%20ready">Tell me when it's ready</a>
