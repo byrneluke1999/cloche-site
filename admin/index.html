@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<!-- Only this page's own scripts, and the one Supabase project. Nothing from anywhere else can run
+     here or be sent data. (GitHub Pages can't set headers, so this is a meta tag.) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://djmgqpscxakiknquzdcd.supabase.co; base-uri 'none'; form-action 'none'">
+<title>Cloche admin</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Figtree:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div id="app"><p class="boot">Loading&hellip;</p></div>
+<div id="print-root" aria-hidden="true"></div>
+<noscript><p class="boot">This page needs JavaScript.</p></noscript>
+<script src="vendor/supabase.js"></script>
+<script type="module" src="main.js"></script>
+</body>
+</html>
