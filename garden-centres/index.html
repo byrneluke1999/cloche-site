@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloche for garden centres and plant shops</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Figtree:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<meta name="description" content="A free pilot for independent garden centres and plant shops in Dublin: a small label on the pot adds the plant to your customer's phone with its care filled in and your name on it.">
+<style>
+  :root { --bg:#FAF7F1; --text:#2E2119; --muted:#6F6157; --line:#DDD2BF; --accent:#5E6E2E; --on-accent:#FAF7F1; --card:#EFE8DC; --glass:#24402F; --walnut:#7A5A40; --walnut-deep:#3B2A1E; --sprout:#A3B566; --linen:#FAF7F1; --on-walnut:#FAF7F1; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#16110E; --text:#F4EEE5; --muted:#B9AC9E; --line:#3A2F26; --accent:#A3B566; --on-accent:#16110E; --card:#261E18; --walnut:#C49A78; --on-walnut:#16110E; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; flex-direction:column; background:var(--bg); color:var(--text); font:17px/1.65 "Figtree", system-ui, sans-serif; }
+  main { flex:1; }
+  h1, h2, h3 { font-family:"Sora", system-ui, sans-serif; margin:0; letter-spacing:-.02em; }
+  p { margin:0 0 1rem; }
+  a { color:var(--accent); }
+  .wrap { max-width:56rem; margin:0 auto; padding:0 24px; }
+  .eyebrow { font:600 .75rem/1.5 "Sora", sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
+  h2 { font-size:clamp(1.8rem, 5vw, 2.5rem); line-height:1.1; letter-spacing:-.03em; margin-bottom:18px; max-width:20ch; }
+  section { padding:64px 0; }
+  .btn { display:inline-block; background:var(--accent); color:var(--on-accent); font:600 1rem "Sora", sans-serif; padding:14px 26px; border-radius:999px; text-decoration:none; }
+  .btn.ghost { background:transparent; color:inherit; box-shadow:inset 0 0 0 2px currentColor; }
+  /* Hero */
+  .hero { background:var(--glass); color:var(--linen); padding:56px 0 64px; text-align:center; }
+  .hero .eyebrow { color:var(--sprout); }
+  .hero svg.hero-logo { width:96px; height:96px; display:block; margin:0 auto 22px; }
+  .hero h1 { font-size:clamp(2.2rem, 7vw, 3.8rem); line-height:1.05; letter-spacing:-.04em; max-width:16ch; margin:0 auto; }
+  .hero .lede { font-size:1.15rem; max-width:36rem; margin:20px auto 28px; color:#DCE5D2; }
+  .hero .btn { background:var(--sprout); color:#16110E; }
+  .hero .btn.ghost { background:transparent; color:var(--linen); }
+  .hero .actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .plank { height:14px; background:var(--walnut); }
+  /* What the customer sees */
+  .flow { display:grid; gap:48px 56px; grid-template-columns:minmax(0, 1fr); align-items:center; margin-top:36px; }
+  @media (min-width: 880px) { .flow { grid-template-columns:minmax(0, .9fr) minmax(0, 1.1fr); } }
+  .steps { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:22px; counter-reset:s; }
+  .steps li { counter-increment:s; display:grid; grid-template-columns:44px 1fr; gap:16px; }
+  .steps li::before { content:counter(s); width:44px; height:44px; border-radius:14px; display:grid; place-items:center; background:var(--card); font:700 1.05rem "Sora", sans-serif; }
+  .steps li:last-child::before { background:var(--accent); color:var(--on-accent); }
+  .steps h3 { font-size:1.12rem; margin-bottom:2px; }
+  .steps p { margin:0; color:var(--muted); font-size:.98rem; line-height:1.55; }
+  .stage { display:flex; gap:28px; align-items:flex-end; justify-content:center; flex-wrap:wrap; }
+  .sticker { display:block; width:150px; height:auto; transform:rotate(-3deg); filter:drop-shadow(0 12px 20px rgba(46,33,25,.28)); }
+  .phone { width:232px; border-radius:34px; padding:10px; background:var(--walnut); box-shadow:0 16px 36px rgba(46,33,25,.22); }
+  .screen { background:var(--bg); border-radius:26px; padding:18px 14px 16px; display:flex; flex-direction:column; gap:10px; align-items:center; text-align:center; }
+  .screen .tile { width:84px; height:84px; border-radius:28px; background:#E2D7C5; display:grid; place-items:center; }
+  @media (prefers-color-scheme: dark) { .screen .tile { background:#4A4036; } }
+  .screen h4 { font:600 1.1rem "Sora", sans-serif; margin:0; letter-spacing:-.01em; }
+  .screen .latin { font:400 .72rem "JetBrains Mono", monospace; color:var(--muted); margin-top:-6px; }
+  .screen .pill { background:var(--walnut); color:var(--on-walnut); font:600 .8rem "Figtree", sans-serif; padding:7px 14px; border-radius:999px; }
+  .screen .row { align-self:stretch; background:var(--card); border-radius:12px; padding:9px 12px; display:flex; justify-content:space-between; font-size:.82rem; }
+  .screen .row span:first-child { color:var(--muted); }
+  .screen .go { align-self:stretch; background:var(--walnut); color:var(--on-walnut); border-radius:12px; padding:10px; font-weight:600; font-size:.88rem; }
+  /* What it takes */
+  .take { background:var(--card); }
+  .two { display:grid; gap:20px; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); margin-top:30px; }
+  .panel { background:var(--bg); border-radius:22px; padding:26px 26px 18px; }
+  .panel h3 { font-size:1.2rem; margin-bottom:12px; }
+  .panel ul { margin:0; padding-left:1.15rem; display:flex; flex-direction:column; gap:10px; }
+  .panel li::marker { color:var(--accent); }
+  .panel p.sub { color:var(--muted); font-size:.95rem; margin-top:14px; }
+  .free { margin-top:20px; background:var(--walnut-deep); color:#F4EEE5; border-radius:22px; padding:22px 26px; display:flex; flex-wrap:wrap; gap:6px 24px; align-items:baseline; }
+  .free b { font:700 1.3rem "Sora", sans-serif; color:var(--sprout); }
+  /* Video */
+  .frame { margin-top:28px; border-radius:22px; overflow:hidden; background:var(--glass); border:6px solid var(--walnut); box-shadow:0 24px 56px rgba(46,33,25,.18); aspect-ratio:16/9; }
+  .frame video { display:block; width:100%; height:100%; object-fit:cover; }
+  /* FAQ */
+  .faq { display:flex; flex-direction:column; margin-top:24px; border-top:1px solid var(--line); }
+  .faq details { border-bottom:1px solid var(--line); }
+  .faq summary { cursor:pointer; list-style:none; padding:18px 36px 18px 0; font:600 1.05rem "Sora", sans-serif; position:relative; letter-spacing:-.01em; }
+  .faq summary::-webkit-details-marker { display:none; }
+  .faq summary::after { content:"+"; position:absolute; right:6px; top:14px; font:400 1.5rem "Figtree", sans-serif; color:var(--accent); }
+  .faq details[open] summary::after { content:"\2212"; }
+  .faq details p { color:var(--muted); margin:0 0 18px; max-width:46rem; }
+  .faq summary:focus-visible, .btn:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+  /* Contact */
+  .contact { text-align:center; background:var(--card); }
+  .contact h2 { margin-inline:auto; }
+  .contact p { max-width:34rem; margin-inline:auto; color:var(--muted); }
+  footer { padding:24px; text-align:center; font-size:.9rem; color:var(--muted); border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <div class="wrap">
+    <svg class="hero-logo" role="img" aria-label="Cloche" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Cloche logo for dark grounds"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#24402F"/><path d="M60 22 C82 22 100 40 100 66 H60 Z" fill="#2E4F3A"/><path d="M40 84 H60 V102 H40 Z" fill="#2E4F3A"/><path d="M20 84 H100 M40 66 V84 M60 66 V84 M80 66 V84" stroke="#3A5E45" stroke-width="2.5" fill="none"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#C49A78" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#C49A78"/></svg>
+    <div class="eyebrow">A free pilot for garden centres and plant shops</div>
+    <h1>Send every plant home with a plan.</h1>
+    <p class="lede">Put a small Cloche label on the pots you choose. Your customer scans it, and the plant lands on their phone with its care filled in and your shop's name on it.</p>
+    <div class="actions">
+      <a class="btn" href="#demo">Watch the 45-second demo</a>
+      <a class="btn ghost" href="mailto:help@cloche.one?subject=Cloche%20for%20our%20shop">Get in touch</a>
+    </div>
+  </div>
+</header>
+<div class="plank"></div>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What your customer sees</div>
+    <h2>Care goes home with the plant.</h2>
+    <div class="flow">
+      <ol class="steps">
+        <li><div><h3>A label on the pot</h3><p>A small sticker with the plant's name, a QR code and your shop's name.</p></div></li>
+        <li><div><h3>One scan</h3><p>Cloche opens on that plant, already knowing what it is and how often to water it, with "Bought at" and your name on it.</p></div></li>
+        <li><div><h3>A nudge when it's thirsty</h3><p>Cloche reminds them on the right day. A plant that thrives is a customer who comes back to you.</p></div></li>
+      </ol>
+      <div class="stage" aria-label="A pot label, and the Cloche screen it opens">
+        <div class="sticker-wrap"><svg class="sticker" viewBox="0 0 52.0 92.0" aria-hidden="true">
+  <path d="M26.0 7 V5" stroke="#7A5A40" stroke-width="1.4" stroke-linecap="round"/>
+  <circle cx="26.0" cy="3" r="2" fill="#7A5A40"/>
+  <path d="M4.0 90.0 V26 C4.0 14 13.0 7 26.0 7 C39.0 7 48.0 14 48.0 26 V90.0 Z" fill="#24402F"/>
+  <path d="M4.0 90.0 V26 C4.0 14 13.0 7 26.0 7 C39.0 7 48.0 14 48.0 26 V90.0" fill="none" stroke="#7A5A40" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="0.5" y="89.25" width="51.0" height="1.5" rx="0.75" fill="#7A5A40"/>
+  <g transform="translate(22.5 9.4) scale(0.07) translate(-10 -6)"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#2E4F3A"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#C49A78" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#C49A78"/></g>
+  <text x="26.0" y="21.7" text-anchor="middle" font-size="4.6" font-weight="700" letter-spacing="-0.1" fill="#F4EEE5" font-family="Sora, Avenir Next, Helvetica, Arial, sans-serif">Cloche</text>
+  <rect x="7.0" y="25.0" width="38.0" height="38.0" rx="2.2" fill="#E6EBD3"/>
+  <text x="26.0" y="62.0" text-anchor="middle" font-size="1.8" font-weight="500" letter-spacing="0.35" fill="#5E6E2E" font-family="JetBrains Mono, Menlo, Courier New, monospace">UPL-7K4Q</text>
+  <path d="M11.000 28.000h6.364v0.909h-6.364zM21.000 28.000h0.909v0.909h-0.909zM26.455 28.000h2.727v0.909h-2.727zM31.000 28.000h0.909v0.909h-0.909zM32.818 28.000h0.909v0.909h-0.909zM34.636 28.000h6.364v0.909h-6.364zM11.000 28.909h0.909v0.909h-0.909zM16.455 28.909h0.909v0.909h-0.909zM19.182 28.909h0.909v0.909h-0.909zM22.818 28.909h2.727v0.909h-2.727zM27.364 28.909h0.909v0.909h-0.909zM29.182 28.909h2.727v0.909h-2.727zM32.818 28.909h0.909v0.909h-0.909zM34.636 28.909h0.909v0.909h-0.909zM40.091 28.909h0.909v0.909h-0.909zM11.000 29.818h0.909v0.909h-0.909zM12.818 29.818h2.727v0.909h-2.727zM16.455 29.818h0.909v0.909h-0.909zM18.273 29.818h3.636v0.909h-3.636zM22.818 29.818h0.909v0.909h-0.909zM24.636 29.818h0.909v0.909h-0.909zM27.364 29.818h1.818v0.909h-1.818zM30.091 29.818h3.636v0.909h-3.636zM34.636 29.818h0.909v0.909h-0.909zM36.455 29.818h2.727v0.909h-2.727zM40.091 29.818h0.909v0.909h-0.909zM11.000 30.727h0.909v0.909h-0.909zM12.818 30.727h2.727v0.909h-2.727zM16.455 30.727h0.909v0.909h-0.909zM18.273 30.727h0.909v0.909h-0.909zM20.091 30.727h0.909v0.909h-0.909zM21.909 30.727h0.909v0.909h-0.909zM23.727 30.727h0.909v0.909h-0.909zM25.545 30.727h5.455v0.909h-5.455zM31.909 30.727h0.909v0.909h-0.909zM34.636 30.727h0.909v0.909h-0.909zM36.455 30.727h2.727v0.909h-2.727zM40.091 30.727h0.909v0.909h-0.909zM11.000 31.636h0.909v0.909h-0.909zM12.818 31.636h2.727v0.909h-2.727zM16.455 31.636h0.909v0.909h-0.909zM19.182 31.636h4.545v0.909h-4.545zM25.545 31.636h0.909v0.909h-0.909zM27.364 31.636h0.909v0.909h-0.909zM31.909 31.636h1.818v0.909h-1.818zM34.636 31.636h0.909v0.909h-0.909zM36.455 31.636h2.727v0.909h-2.727zM40.091 31.636h0.909v0.909h-0.909zM11.000 32.545h0.909v0.909h-0.909zM16.455 32.545h0.909v0.909h-0.909zM21.000 32.545h3.636v0.909h-3.636zM25.545 32.545h3.636v0.909h-3.636zM31.909 32.545h0.909v0.909h-0.909zM34.636 32.545h0.909v0.909h-0.909zM40.091 32.545h0.909v0.909h-0.909zM11.000 33.455h6.364v0.909h-6.364zM18.273 33.455h0.909v0.909h-0.909zM20.091 33.455h0.909v0.909h-0.909zM21.909 33.455h0.909v0.909h-0.909zM23.727 33.455h0.909v0.909h-0.909zM25.545 33.455h0.909v0.909h-0.909zM27.364 33.455h0.909v0.909h-0.909zM29.182 33.455h0.909v0.909h-0.909zM31.000 33.455h0.909v0.909h-0.909zM32.818 33.455h0.909v0.909h-0.909zM34.636 33.455h6.364v0.909h-6.364zM19.182 34.364h0.909v0.909h-0.909zM25.545 34.364h0.909v0.909h-0.909zM27.364 34.364h1.818v0.909h-1.818zM32.818 34.364h0.909v0.909h-0.909zM13.727 35.273h1.818v0.909h-1.818zM16.455 35.273h1.818v0.909h-1.818zM20.091 35.273h0.909v0.909h-0.909zM22.818 35.273h0.909v0.909h-0.909zM24.636 35.273h1.818v0.909h-1.818zM31.000 35.273h0.909v0.909h-0.909zM32.818 35.273h0.909v0.909h-0.909zM37.364 35.273h1.818v0.909h-1.818zM11.000 36.182h1.818v0.909h-1.818zM14.636 36.182h1.818v0.909h-1.818zM18.273 36.182h0.909v0.909h-0.909zM21.000 36.182h0.909v0.909h-0.909zM24.636 36.182h0.909v0.909h-0.909zM26.455 36.182h0.909v0.909h-0.909zM30.091 36.182h1.818v0.909h-1.818zM33.727 36.182h0.909v0.909h-0.909zM35.545 36.182h3.636v0.909h-3.636zM11.000 37.091h0.909v0.909h-0.909zM15.545 37.091h1.818v0.909h-1.818zM19.182 37.091h0.909v0.909h-0.909zM21.909 37.091h0.909v0.909h-0.909zM23.727 37.091h1.818v0.909h-1.818zM26.455 37.091h2.727v0.909h-2.727zM31.000 37.091h2.727v0.909h-2.727zM34.636 37.091h1.818v0.909h-1.818zM38.273 37.091h2.727v0.909h-2.727zM11.909 38.000h1.818v0.909h-1.818zM14.636 38.000h1.818v0.909h-1.818zM19.182 38.000h0.909v0.909h-0.909zM21.000 38.000h3.636v0.909h-3.636zM26.455 38.000h0.909v0.909h-0.909zM30.091 38.000h10.909v0.909h-10.909zM11.000 38.909h0.909v0.909h-0.909zM13.727 38.909h0.909v0.909h-0.909zM16.455 38.909h2.727v0.909h-2.727zM20.091 38.909h1.818v0.909h-1.818zM28.273 38.909h2.727v0.909h-2.727zM31.909 38.909h1.818v0.909h-1.818zM34.636 38.909h3.636v0.909h-3.636zM39.182 38.909h1.818v0.909h-1.818zM11.000 39.818h1.818v0.909h-1.818zM14.636 39.818h0.909v0.909h-0.909zM20.091 39.818h0.909v0.909h-0.909zM29.182 39.818h1.818v0.909h-1.818zM31.909 39.818h2.727v0.909h-2.727zM39.182 39.818h0.909v0.909h-0.909zM11.000 40.727h0.909v0.909h-0.909zM13.727 40.727h0.909v0.909h-0.909zM15.545 40.727h2.727v0.909h-2.727zM29.182 40.727h0.909v0.909h-0.909zM34.636 40.727h0.909v0.909h-0.909zM36.455 40.727h1.818v0.909h-1.818zM12.818 41.636h2.727v0.909h-2.727zM18.273 41.636h0.909v0.909h-0.909zM33.727 41.636h0.909v0.909h-0.909zM36.455 41.636h0.909v0.909h-0.909zM38.273 41.636h2.727v0.909h-2.727zM11.000 42.545h1.818v0.909h-1.818zM14.636 42.545h0.909v0.909h-0.909zM16.455 42.545h0.909v0.909h-0.909zM18.273 42.545h2.727v0.909h-2.727zM31.909 42.545h0.909v0.909h-0.909zM33.727 42.545h3.636v0.909h-3.636zM39.182 42.545h0.909v0.909h-0.909zM14.636 43.455h0.909v0.909h-0.909zM17.364 43.455h0.909v0.909h-0.909zM21.000 43.455h0.909v0.909h-0.909zM30.091 43.455h1.818v0.909h-1.818zM32.818 43.455h1.818v0.909h-1.818zM36.455 43.455h1.818v0.909h-1.818zM11.000 44.364h1.818v0.909h-1.818zM13.727 44.364h3.636v0.909h-3.636zM18.273 44.364h3.636v0.909h-3.636zM29.182 44.364h0.909v0.909h-0.909zM31.909 44.364h0.909v0.909h-0.909zM33.727 44.364h5.455v0.909h-5.455zM40.091 44.364h0.909v0.909h-0.909zM11.909 45.273h1.818v0.909h-1.818zM14.636 45.273h0.909v0.909h-0.909zM17.364 45.273h0.909v0.909h-0.909zM19.182 45.273h3.636v0.909h-3.636zM31.000 45.273h4.545v0.909h-4.545zM37.364 45.273h1.818v0.909h-1.818zM11.000 46.182h3.636v0.909h-3.636zM15.545 46.182h1.818v0.909h-1.818zM18.273 46.182h0.909v0.909h-0.909zM21.909 46.182h0.909v0.909h-0.909zM23.727 46.182h0.909v0.909h-0.909zM28.273 46.182h1.818v0.909h-1.818zM32.818 46.182h1.818v0.909h-1.818zM35.545 46.182h0.909v0.909h-0.909zM37.364 46.182h0.909v0.909h-0.909zM11.000 47.091h0.909v0.909h-0.909zM12.818 47.091h0.909v0.909h-0.909zM14.636 47.091h1.818v0.909h-1.818zM18.273 47.091h0.909v0.909h-0.909zM20.091 47.091h2.727v0.909h-2.727zM27.364 47.091h4.545v0.909h-4.545zM34.636 47.091h3.636v0.909h-3.636zM11.000 48.000h0.909v0.909h-0.909zM12.818 48.000h5.455v0.909h-5.455zM19.182 48.000h0.909v0.909h-0.909zM22.818 48.000h1.818v0.909h-1.818zM25.545 48.000h0.909v0.909h-0.909zM27.364 48.000h1.818v0.909h-1.818zM30.091 48.000h1.818v0.909h-1.818zM32.818 48.000h0.909v0.909h-0.909zM34.636 48.000h0.909v0.909h-0.909zM36.455 48.000h4.545v0.909h-4.545zM11.000 48.909h0.909v0.909h-0.909zM12.818 48.909h0.909v0.909h-0.909zM19.182 48.909h1.818v0.909h-1.818zM23.727 48.909h3.636v0.909h-3.636zM28.273 48.909h1.818v0.909h-1.818zM35.545 48.909h0.909v0.909h-0.909zM38.273 48.909h0.909v0.909h-0.909zM40.091 48.909h0.909v0.909h-0.909zM11.000 49.818h4.545v0.909h-4.545zM16.455 49.818h0.909v0.909h-0.909zM19.182 49.818h0.909v0.909h-0.909zM22.818 49.818h1.818v0.909h-1.818zM25.545 49.818h0.909v0.909h-0.909zM31.000 49.818h0.909v0.909h-0.909zM32.818 49.818h5.455v0.909h-5.455zM18.273 50.727h1.818v0.909h-1.818zM24.636 50.727h1.818v0.909h-1.818zM31.000 50.727h2.727v0.909h-2.727zM36.455 50.727h1.818v0.909h-1.818zM39.182 50.727h0.909v0.909h-0.909zM11.000 51.636h6.364v0.909h-6.364zM18.273 51.636h0.909v0.909h-0.909zM20.091 51.636h2.727v0.909h-2.727zM24.636 51.636h3.636v0.909h-3.636zM29.182 51.636h2.727v0.909h-2.727zM32.818 51.636h0.909v0.909h-0.909zM34.636 51.636h0.909v0.909h-0.909zM36.455 51.636h1.818v0.909h-1.818zM11.000 52.545h0.909v0.909h-0.909zM16.455 52.545h0.909v0.909h-0.909zM19.182 52.545h1.818v0.909h-1.818zM22.818 52.545h1.818v0.909h-1.818zM28.273 52.545h0.909v0.909h-0.909zM31.909 52.545h1.818v0.909h-1.818zM36.455 52.545h3.636v0.909h-3.636zM11.000 53.455h0.909v0.909h-0.909zM12.818 53.455h2.727v0.909h-2.727zM16.455 53.455h0.909v0.909h-0.909zM18.273 53.455h0.909v0.909h-0.909zM20.091 53.455h0.909v0.909h-0.909zM21.909 53.455h0.909v0.909h-0.909zM23.727 53.455h0.909v0.909h-0.909zM26.455 53.455h1.818v0.909h-1.818zM29.182 53.455h1.818v0.909h-1.818zM31.909 53.455h5.455v0.909h-5.455zM39.182 53.455h0.909v0.909h-0.909zM11.000 54.364h0.909v0.909h-0.909zM12.818 54.364h2.727v0.909h-2.727zM16.455 54.364h0.909v0.909h-0.909zM18.273 54.364h2.727v0.909h-2.727zM22.818 54.364h1.818v0.909h-1.818zM27.364 54.364h3.636v0.909h-3.636zM32.818 54.364h1.818v0.909h-1.818zM35.545 54.364h0.909v0.909h-0.909zM38.273 54.364h1.818v0.909h-1.818zM11.000 55.273h0.909v0.909h-0.909zM12.818 55.273h2.727v0.909h-2.727zM16.455 55.273h0.909v0.909h-0.909zM19.182 55.273h0.909v0.909h-0.909zM21.000 55.273h0.909v0.909h-0.909zM23.727 55.273h0.909v0.909h-0.909zM26.455 55.273h2.727v0.909h-2.727zM31.000 55.273h0.909v0.909h-0.909zM32.818 55.273h0.909v0.909h-0.909zM36.455 55.273h4.545v0.909h-4.545zM11.000 56.182h0.909v0.909h-0.909zM16.455 56.182h0.909v0.909h-0.909zM21.000 56.182h4.545v0.909h-4.545zM28.273 56.182h0.909v0.909h-0.909zM30.091 56.182h0.909v0.909h-0.909zM33.727 56.182h0.909v0.909h-0.909zM37.364 56.182h3.636v0.909h-3.636zM11.000 57.091h6.364v0.909h-6.364zM19.182 57.091h1.818v0.909h-1.818zM21.909 57.091h1.818v0.909h-1.818zM27.364 57.091h0.909v0.909h-0.909zM29.182 57.091h1.818v0.909h-1.818zM31.909 57.091h2.727v0.909h-2.727zM36.455 57.091h2.727v0.909h-2.727z" fill="#24402F"/><circle cx="26.000" cy="43.000" r="4.000" fill="#E6EBD3"/><circle cx="26.000" cy="43.000" r="3.545" fill="#24402F"/><g transform="translate(26.000 43.000) scale(0.1714) translate(-60.6 -88.8)"><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/></g>
+  <text x="26.0" y="67.9" text-anchor="middle" font-size="3.0" font-weight="700" fill="#F4EEE5" font-family="Sora, Avenir Next, Helvetica, Arial, sans-serif">Cloche fills in the care</text>
+  <text x="26.0" y="71.4" text-anchor="middle" font-size="3.0" font-weight="700" fill="#F4EEE5" font-family="Sora, Avenir Next, Helvetica, Arial, sans-serif">for your plant</text>
+  <text x="26.0" y="75.4" text-anchor="middle" font-size="2.8" font-style="italic" fill="#C49A78" font-family="Figtree, Helvetica Neue, Helvetica, Arial, sans-serif">New here? Scan to start.</text>
+  <path d="M10 78.2 H42.0" stroke="#7A5A40" stroke-width="0.3"/>
+  <text x="26.0" y="82.0" text-anchor="middle" font-size="3.2" font-weight="700" fill="#F4EEE5" font-family="Sora, Avenir Next, Helvetica, Arial, sans-serif">Boston fern</text>
+  <rect x="4.0" y="84.4" width="44.0" height="5.6" fill="#7A5A40"/>
+  <text x="26.0" y="88.3" text-anchor="middle" font-size="3.1" font-weight="600" fill="#FAF7F1" font-family="Sora, Avenir Next, Helvetica, Arial, sans-serif">Your garden centre</text>
+</svg></div>
+        <div class="phone" role="img" aria-label="Cloche screen for a Boston fern bought at Your Shop">
+          <div class="screen">
+            <div class="tile"><svg width="52" height="52" viewBox="0 0 60 60" fill="none" aria-hidden="true"><path d="M30 54 C30 40 28 30 30 18" stroke="#27500A" stroke-width="3" stroke-linecap="round"/><ellipse cx="22" cy="40" rx="11" ry="6" transform="rotate(-24 22 40)" fill="#3B6D11"/><ellipse cx="38" cy="30" rx="11" ry="6" transform="rotate(24 38 30)" fill="#639922"/><ellipse cx="24" cy="21" rx="9" ry="5" transform="rotate(-30 24 21)" fill="#97C459"/></svg></div>
+            <h4>Boston fern</h4>
+            <div class="latin">Nephrolepis exaltata</div>
+            <div class="pill">Bought at Your Shop</div>
+            <div class="row"><span>Water</span><span>Every 7 days</span></div>
+            <div class="row"><span>Lives</span><span>Indoors</span></div>
+            <div class="go">Add to greenhouse</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="take">
+  <div class="wrap">
+    <div class="eyebrow">What it takes</div>
+    <h2>A label and twenty minutes a month.</h2>
+    <div class="two">
+      <div class="panel">
+        <h3>From you</h3>
+        <ul>
+          <li>Tell us which plants you'd like labels for, with the exact plant or cultivar.</li>
+          <li>Put the labels on those pots, at restock or at the till.</li>
+          <li>Say it once at the till: "Scan the label to keep it alive."</li>
+          <li>Twenty minutes a month to tell us how it's going.</li>
+        </ul>
+        <p class="sub">Nothing to enter, nothing to install, no stock to buy.</p>
+      </div>
+      <div class="panel">
+        <h3>From us</h3>
+        <ul>
+          <li>Make and deliver the labels.</li>
+          <li>Set up each plant's care. Cloche works out the watering, so you never enter or approve it.</li>
+          <li>Keep "Bought at" and your name on every plant, for as long as the customer owns it.</li>
+          <li>A short note each month: plants added, how many people, and how many are still being watered a month later.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="free"><b>Free for the pilot.</b><span>No contract, and you can stop whenever you like.</span></div>
+  </div>
+</section>
+
+<section class="watch" id="demo">
+  <div class="wrap">
+    <div class="eyebrow">Watch</div>
+    <h2>The whole thing in 45 seconds</h2>
+    <div class="frame">
+      <video controls playsinline preload="none" poster="/video/cloche-poster.jpg" aria-label="Cloche demo: a 45-second walkthrough for plant shops">
+        <source src="/video/cloche-demo.mp4" type="video/mp4">
+        Your browser can't play this video. <a href="/video/cloche-demo.mp4">Download it</a>.
+      </video>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Questions</div>
+    <h2>The things shops ask.</h2>
+    <div class="faq">
+      <details><summary>Do our customers need to install something?</summary>
+        <p>Yes: Cloche, a free app. It's iPhone first, with Android planned. We'd start once it's on the App Store, and the link on every label tells anyone without the app how to get it.</p></details>
+      <details><summary>What does it cost?</summary>
+        <p>Nothing for the pilot. If it works well for you, we'd talk about local offers or a share of sales that start in the app, but only then, and only if you want to.</p></details>
+      <details><summary>Who decides how often a plant is watered?</summary>
+        <p>Cloche does, from its own plant-care data, and we check it before any label is printed. You never enter or approve a watering schedule, and customers can still change it for their own home.</p></details>
+      <details><summary>What if one of our plants isn't set up?</summary>
+        <p>We add it before printing. A label is only made for a plant whose care is already set up, so every scan fills in.</p></details>
+      <details><summary>What do we see about our customers?</summary>
+        <p>Counts only: how many plants were added from your labels, by how many people, and how many are still being watered a month later. Never names, photos or addresses. Our <a href="/privacy/">privacy policy</a> has the detail.</p></details>
+      <details><summary>What do the labels look like, and which pots do they suit?</summary>
+        <p>A small waterproof sticker, about 5 by 9 cm: the Cloche mark, a QR code, the plant's name and yours. They suit pots from about 12 cm up. For very small pots, tell us and we'll find something that fits.</p></details>
+      <details><summary>How many plants should we start with?</summary>
+        <p>A handful: your best sellers and the ones customers ask about. Five to fifteen is plenty for a first run.</p></details>
+      <details><summary>What if it isn't for us?</summary>
+        <p>Stop whenever you like. You'd have lost a few stickers and a little time.</p></details>
+      <details><summary>Who is behind Cloche?</summary>
+        <p>Luke Byrne, a Dublin developer. Cloche is a small independent project, and you'd deal with me directly.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="contact">
+  <div class="wrap">
+    <div class="eyebrow">Next step</div>
+    <h2>Ten minutes in your shop?</h2>
+    <p>I'll bring a sample label and show you Cloche on your own plants. Or just write and ask anything.</p>
+    <p><a class="btn" href="mailto:help@cloche.one?subject=Cloche%20for%20our%20shop">help@cloche.one</a></p>
+  </div>
+</section>
+
+</main>
+<footer>
+  <a href="/">Cloche</a> &middot; <a href="/privacy/">Privacy policy</a> &middot; <a href="mailto:help@cloche.one">help@cloche.one</a>
+</footer>
+</body>
+</html>
