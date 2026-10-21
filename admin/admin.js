@@ -551,6 +551,7 @@ const careFormFrom = (row) => ({
   typical_environment: row?.typical_environment ?? 'indoor',
   light: row?.light ?? '',
   humidity: row?.humidity ?? '',
+  animal_toxicity: row?.animal_toxicity ?? '',
   reviewed: row?.reviewed ?? false,
 });
 
@@ -714,8 +715,9 @@ function careCard(m) {
         h('option', { value: 'indoor' }, 'Indoors'), h('option', { value: 'outdoor' }, 'Outdoors')), h('span', { class: 'hint' }, 'How it is usually grown in Ireland and the UK.')),
       field('Common name', 'species_common', { maxlength: 60 }),
       field('Light', 'light', { maxlength: 120 }),
-      field('Humidity', 'humidity', { maxlength: 120 })),
-    row.toxic_to_pets !== undefined ? h('p', { class: 'small muted' }, `Toxicity (not shown in the app until verified): pets ${triState(row.toxic_to_pets)}, children ${triState(row.toxic_to_children)}.`) : null,
+      field('Humidity', 'humidity', { maxlength: 120 }),
+      field('Toxic to animals', 'animal_toxicity', { maxlength: 200 }, 'Filled in by the lookup. Write only “Toxic to cats and dogs”, “Toxic to cats” or “Toxic to dogs”. Leave blank if it isn’t toxic: nothing shows.')),
+    row.toxic_to_pets !== undefined ? h('p', { class: 'small muted' }, `Toxicity flags (not shown in the app; use the note above): pets ${triState(row.toxic_to_pets)}, children ${triState(row.toxic_to_children)}.`) : null,
     h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: f.reviewed, onchange: (e) => (f.reviewed = e.target.checked) }),
       h('span', {}, 'I have checked this care. Labels are only made for reviewed care, so a scan always shows something right.')),
     h('div', { class: 'row' }, btn(isNew ? 'Save care' : 'Save changes', () => saveCareClicked())),
@@ -734,6 +736,7 @@ function careValues(f) {
     typical_environment: f.typical_environment,
     light: f.light.trim() || null,
     humidity: f.humidity.trim() || null,
+    animal_toxicity: f.animal_toxicity.trim() || null,
     reviewed: !!f.reviewed,
   };
 }
