@@ -26,6 +26,8 @@ const st = {
   tags: [],
   stats: new Map(),
   queue: [],
+  review: [], // admin_care_queue: unreviewed species, most-used first
+  reviewing: null, // { care, form, careMsg } while one is open on the Review tab
   make: freshMake(),
   filter: { shop: '', text: '', archived: false },
   banner: null,
@@ -494,6 +496,9 @@ async function refreshAll() {
     st.care = care;
     st.tags = tags;
     st.stats = new Map((stats || []).map((s) => [s.shop_id, s]));
+    // The review queue is newer than the rest (Phase 2). Until its migration is applied the tab
+    // just says so, and the other tabs still work.
+    st.review = await ok(sb.rpc('admin_care_queue')).catch(() => null);
     st.loaded = true;
     st.banner = null;
   } catch (err) {
@@ -512,11 +517,12 @@ const TABS = [
   ['make', 'Make a label'],
   ['labels', 'Labels'],
   ['shops', 'Shops'],
+  ['review', 'Care to review'],
 ];
 
 function render() {
   if (!st.user) return;
-  const view = st.tab === 'labels' ? labelsView() : st.tab === 'shops' ? shopsView() : makeView();
+  const view = st.tab === 'labels' ? labelsView() : st.tab === 'shops' ? shopsView() : st.tab === 'review' ? reviewView() : makeView();
   const top = h('div', { class: 'top' }, h('div', { class: 'wrap bar' },
     h('img', { src: '/favicon.svg', alt: '' }),
     h('h1', {}, 'Cloche admin'),
@@ -552,8 +558,19 @@ const careFormFrom = (row) => ({
   light: row?.light ?? '',
   humidity: row?.humidity ?? '',
   animal_toxicity: row?.animal_toxicity ?? '',
+  plant_type: row?.plant_type ?? '',
   reviewed: row?.reviewed ?? false,
 });
+
+// The groups the app's greenhouse filter uses. Same list as species_care's check constraint.
+const PLANT_TYPES = [
+  ['herb', 'Herbs'],
+  ['succulent', 'Succulents & cacti'],
+  ['flowering', 'Flowering'],
+  ['foliage', 'Leafy'],
+  ['tree', 'Trees & shrubs'],
+  ['edible', 'Fruit & veg'],
+];
 
 function adoptCare(row) {
   const m = st.make;
@@ -695,7 +712,8 @@ async function lookUp() {
   }
 }
 
-function careCard(m) {
+/** The care editor. `m` holds { care, form, careMsg }: the Make tab's state, or the Review tab's. */
+function careCard(m, step = '3') {
   const f = m.form;
   const row = m.care;
   const isNew = !!row.manual;
@@ -705,7 +723,7 @@ function careCard(m) {
   const field = (label, name, props = {}, hint) => h('label', { class: 'field' }, label,
     h('input', { value: f[name], oninput: (e) => (f[name] = e.target.value), ...props }), hint ? h('span', { class: 'hint' }, hint) : null);
   return h('section', { class: 'card' },
-    cardHead('3', `Care for ${row.species_scientific}`, status),
+    cardHead(step, `Care for ${row.species_scientific}`, status),
     lede('Cloche decides how often a plant is watered. Check it, fix anything that’s off, then tick that it’s reviewed.'),
     !isNew ? h('p', { class: 'small muted' }, sources.length ? '' : 'No sources recorded.',
       sources.slice(0, 4).map((s, i) => [i ? ' · ' : 'Sources: ', /^https?:\/\//.test(s.url) ? h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' }, s.title || s.url) : (s.title || '')])) : null,
@@ -716,11 +734,14 @@ function careCard(m) {
       field('Common name', 'species_common', { maxlength: 60 }),
       field('Light', 'light', { maxlength: 120 }),
       field('Humidity', 'humidity', { maxlength: 120 }),
-      field('Toxic to animals', 'animal_toxicity', { maxlength: 200 }, 'Filled in by the lookup. Write only “Toxic to cats and dogs”, “Toxic to cats” or “Toxic to dogs”. Leave blank if it isn’t toxic: nothing shows.')),
+      field('Toxic to animals', 'animal_toxicity', { maxlength: 200 }, 'Filled in by the lookup. Write only “Toxic to cats and dogs”, “Toxic to cats” or “Toxic to dogs”. Leave blank if it isn’t toxic: nothing shows.'),
+      h('label', { class: 'field' }, 'Plant type', h('select', { onchange: (e) => (f.plant_type = e.target.value), value: f.plant_type },
+        h('option', { value: '' }, 'Not set'), PLANT_TYPES.map(([v, name]) => h('option', { value: v }, name))),
+        h('span', { class: 'hint' }, 'What the greenhouse filter groups it under in the app.'))),
     row.toxic_to_pets !== undefined ? h('p', { class: 'small muted' }, `Toxicity flags (not shown in the app; use the note above): pets ${triState(row.toxic_to_pets)}, children ${triState(row.toxic_to_children)}.`) : null,
     h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: f.reviewed, onchange: (e) => (f.reviewed = e.target.checked) }),
       h('span', {}, 'I have checked this care. Labels are only made for reviewed care, so a scan always shows something right.')),
-    h('div', { class: 'row' }, btn(isNew ? 'Save care' : 'Save changes', () => saveCareClicked())),
+    h('div', { class: 'row' }, btn(isNew ? 'Save care' : 'Save changes', () => saveCareClicked(m))),
     notice(m.careMsg?.kind, m.careMsg?.text)
   );
 }
@@ -737,26 +758,30 @@ function careValues(f) {
     light: f.light.trim() || null,
     humidity: f.humidity.trim() || null,
     animal_toxicity: f.animal_toxicity.trim() || null,
+    plant_type: f.plant_type || null,
     reviewed: !!f.reviewed,
   };
 }
 
-async function saveCare() {
-  const m = st.make;
+async function saveCare(m = st.make) {
   const values = careValues(m.form);
   const row = m.care.manual
     ? await ok(sb.from('species_care').insert({ species_scientific: m.care.species_scientific, ...values, model: 'manual' }).select().single())
     : await ok(sb.from('species_care').update(values).eq('species_scientific', m.care.species_scientific).select().single());
   await refreshAll();
-  adoptCare(row);
-  m.commonName = m.commonName || row.species_common || '';
+  if (m === st.make) {
+    adoptCare(row);
+    m.commonName = m.commonName || row.species_common || '';
+  } else {
+    m.care = row;
+    m.form = careFormFrom(row);
+  }
 }
 
-async function saveCareClicked() {
-  const m = st.make;
+async function saveCareClicked(m = st.make) {
   m.careMsg = null;
   try {
-    await saveCare();
+    await saveCare(m);
     m.careMsg = { kind: 'ok', text: 'Care saved.' };
   } catch (err) {
     m.careMsg = { kind: 'error', text: explain(err) };
@@ -986,6 +1011,43 @@ function changeShop(tag) {
     }),
     btn('Cancel', close, 'secondary'),
   ]);
+}
+
+// ------------------------------------------------------------------ shops
+
+// ------------------------------------------------------------------ care to review
+
+function reviewView() {
+  const r = st.reviewing;
+  if (r) {
+    return h('div', { class: 'card-stack' },
+      h('div', { class: 'row' }, btn('← Back to the list', () => { st.reviewing = null; render(); }, 'secondary small')),
+      careCard(r, null));
+  }
+  const intro = h('section', { class: 'card' },
+    cardHead(null, 'Care to review'),
+    lede('Care the lookup wrote that nobody has checked yet, most-used first. Open one, fix anything that’s off, tick that it’s reviewed and save.'));
+  if (st.review === null) {
+    return h('div', { class: 'card-stack' }, intro,
+      notice('error', 'The review list needs the Phase 2 migration (admin_care_queue). Run supabase db push, then reload.'));
+  }
+  if (!st.review.length) return h('div', { class: 'card-stack' }, intro, notice('ok', 'All care is reviewed.'));
+  return h('div', { class: 'card-stack' }, intro,
+    h('div', { class: 'tablewrap' }, h('table', {},
+      h('thead', {}, h('tr', {}, ['Species', 'Type', 'Plants', 'People', ''].map((t) => h('th', {}, t)))),
+      h('tbody', {}, st.review.map((q) => {
+        const care = careFor(q.species_scientific);
+        const type = PLANT_TYPES.find(([v]) => v === care?.plant_type)?.[1];
+        return h('tr', {},
+          h('td', {}, h('em', {}, q.species_scientific), care?.species_common ? h('div', { class: 'small muted' }, care.species_common) : null),
+          h('td', {}, type || h('span', { class: 'pill warn' }, 'not set')),
+          h('td', {}, q.plants), h('td', {}, q.people),
+          h('td', { class: 'actions' }, care ? btn('Review', () => {
+            st.reviewing = { care, form: careFormFrom(care), careMsg: null };
+            render();
+            window.scrollTo(0, 0);
+          }, 'small') : null));
+      })))));
 }
 
 // ------------------------------------------------------------------ shops
