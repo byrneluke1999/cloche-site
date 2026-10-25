@@ -601,13 +601,6 @@ const CARE_CATEGORIES = {
   repot_kind: ['Repotting icon', [['regular', 'Every so often'], ['rarely', 'Rarely'], ['in_ground', 'In the ground']]],
 };
 
-function categorySelect(f, name) {
-  const [label, options] = CARE_CATEGORIES[name];
-  return h('label', { class: 'field' }, label,
-    h('select', { onchange: (e) => (f[name] = e.target.value), value: f[name] },
-      h('option', { value: '' }, 'Not set'), options.map(([v, text]) => h('option', { value: v }, text))));
-}
-
 /** "3, 4, 5" → [3, 4, 5]; months must be 1 to 12. Empty means no feeding months. */
 function parseMonths(text) {
   const parts = text.split(/[\s,]+/).filter(Boolean);
@@ -776,7 +769,147 @@ async function lookUp() {
   }
 }
 
-/** The care editor. `m` holds { care, form, careMsg }: the Make tab's state, or the Review tab's. */
+// ------------------------------------------------------------------ care editor
+//
+// One card per care topic, in the app's colours (cloche-app/src/constants/care-palette.ts), so
+// everything about light, say, is in one place: its icon, the tile text, the fuller note and a
+// live preview of the tile as the app draws it (cloche-app/src/lib/care-tiles.ts).
+
+// Characters each tile text should fit (the app's CARE_TEXT_LIMITS), and the database's looser
+// limits, which the boxes enforce. Over the first is allowed but shown: the tile may wrap.
+const TILE_BUDGET = { light: 60, humidity: 60, placement: 90, soil: 80, feed_type: 60, feed_amount: 50, repot_notes: 100 };
+const DB_LIMIT = { light: 200, humidity: 200, placement: 200, soil: 160, feed_type: 120, feed_amount: 120, repot_notes: 200 };
+
+// Each category's icon file in ./care-icons/ (copied from docs/brand/icons/care/).
+const CATEGORY_ICON = {
+  light_level: { full_sun: 'light-full-sun', bright_indirect: 'light-bright-indirect', part_shade: 'light-part-shade', shade: 'light-shade' },
+  humidity_level: { low: 'humidity-low', average: 'humidity-average', high: 'humidity-high' },
+  spot_kind: { windowsill: 'spot-windowsill', near_window: 'spot-near-window', in_room: 'spot-in-room', garden_border: 'spot-garden-border', patio_pot: 'spot-patio-pot' },
+  soil_kind: { multipurpose: 'soil-multipurpose', free_draining: 'soil-free-draining', ericaceous: 'soil-ericaceous', bark: 'soil-bark' },
+  feed_kind: { balanced_liquid: 'fertiliser-balanced-liquid', high_potash: 'fertiliser-high-potash', granules: 'fertiliser-granules', specialist: 'fertiliser-specialist', none: 'fertiliser-none' },
+  repot_kind: { regular: 'repot-regular', rarely: 'repot-rarely', in_ground: 'repot-in-ground' },
+};
+
+/** A care icon, light and dark, like the app's (on its own disc). */
+function careIcon(name, size = 36) {
+  return h('picture', { class: 'care-icon' },
+    h('source', { srcset: `care-icons/cloche-care-${name}-dark.svg`, media: '(prefers-color-scheme: dark)' }),
+    h('img', { src: `care-icons/cloche-care-${name}.svg`, width: size, height: size, alt: '' }));
+}
+
+const categoryLabel = (name, value) => CARE_CATEGORIES[name][1].find(([v]) => v === value)?.[1];
+
+/** A text box that grows with its text, with a "44 / 60" count that turns red past `budget`. */
+function countedText(f, name, { budget, max, rows = 1, onChange }) {
+  const count = h('span', { class: 'count' });
+  const box = h('textarea', { rows, maxlength: max, value: f[name] });
+  const update = () => {
+    const n = f[name].trim().length;
+    count.textContent = budget ? `${n} / ${budget}` : `${n}`;
+    count.classList.toggle('over', !!budget && n > budget);
+    count.title = budget && n > budget ? 'Longer than the tile was designed for: it may wrap. Shorten it if you can.' : '';
+  };
+  box.addEventListener('input', (e) => { f[name] = e.target.value; update(); onChange?.(); });
+  update();
+  return { box, count };
+}
+
+/** What the app's tile says for a topic, from the form (mirrors care-tiles.ts). */
+function tileFor(topic, f) {
+  const text = (v) => (v || '').trim();
+  if (topic.key === 'feed') {
+    if (f.feed_kind === 'none') return { icon: 'fertiliser-none', headline: 'Not needed', detail: '' };
+    return { icon: CATEGORY_ICON.feed_kind[f.feed_kind] || 'fertiliser-balanced-liquid', headline: text(f.feed_type), detail: text(f.feed_amount) };
+  }
+  if (topic.key === 'repot') {
+    const every = Number(f.repot_every_months);
+    const headline = f.repot_kind === 'in_ground' ? 'Grown in the ground'
+      : f.repot_kind === 'rarely' ? 'Rarely'
+      : every ? (every === 12 ? 'Every year' : every % 12 === 0 ? `Every ${every / 12} years` : `Every ${every} months`) : '';
+    return { icon: CATEGORY_ICON.repot_kind[f.repot_kind] || 'repot-regular', headline, detail: text(f.repot_notes) };
+  }
+  const label = categoryLabel(topic.category, f[topic.category]);
+  return {
+    icon: CATEGORY_ICON[topic.category][f[topic.category]] || topic.fallbackIcon,
+    // No category yet: the app shows the text as the detail line, under no headline.
+    headline: label || '',
+    detail: text(f[topic.text]),
+  };
+}
+
+/** The app's tile, drawn from the form: icon, small label in the family's ink, headline, detail. */
+function tilePreview(topic, f) {
+  const holder = h('div', { class: `tile-preview fam-${topic.family}` });
+  const draw = () => {
+    const tile = tileFor(topic, f);
+    // replaceChildren would print a null as "null", so leave the missing parts out.
+    holder.replaceChildren(...[
+      careIcon(tile.icon, 32),
+      h('div', { class: 'tile-label' }, topic.title),
+      tile.headline ? h('div', { class: 'tile-headline' }, tile.headline) : null,
+      tile.detail ? h('div', { class: 'tile-detail' }, tile.detail) : null,
+      !tile.headline && !tile.detail ? h('div', { class: 'tile-detail' }, 'No tile: nothing to show yet.') : null,
+    ].filter(Boolean));
+  };
+  draw();
+  return { holder, draw };
+}
+
+const CARE_TOPICS = [
+  { key: 'light', title: 'Light', family: 'sun', category: 'light_level', text: 'light', note: 'light', fallbackIcon: 'light-bright-indirect',
+    hint: 'A short phrase; the icon gives the headline (e.g. “Bright, indirect”).' },
+  { key: 'spot', title: 'Spot', family: 'sun', category: 'spot_kind', text: 'placement', note: 'placement', fallbackIcon: 'spot-windowsill',
+    hint: 'Where in the home or garden, e.g. “Bright spot near a window, away from radiators”.' },
+  { key: 'humidity', title: 'Humidity', family: 'water', category: 'humidity_level', text: 'humidity', note: 'humidity', fallbackIcon: 'humidity-average' },
+  { key: 'soil', title: 'Soil', family: 'earth', category: 'soil_kind', text: 'soil', note: 'soil', fallbackIcon: 'soil-multipurpose' },
+  { key: 'feed', title: 'Fertiliser and feeding', family: 'feed', category: 'feed_kind', text: 'feed_type', note: 'feed',
+    hint: 'The kind of feed, never a brand. Leave the feed fields blank, and pick “Not needed”, for a plant that needs none.' },
+  { key: 'repot', title: 'Repotting', family: 'earth', category: 'repot_kind', text: 'repot_notes', note: 'repot',
+    hint: 'When and how, as a short phrase.' },
+];
+
+/** One care topic's card: icon, tile text, the topic's extra fields, fuller note, live tile. */
+function topicCard(topic, f) {
+  const preview = tilePreview(topic, f);
+  const header = h('header', {}, careIcon(tileFor(topic, f).icon, 40), h('h3', {}, topic.title));
+  const redraw = () => { preview.draw(); header.firstChild.replaceWith(careIcon(tileFor(topic, f).icon, 40)); };
+
+  const options = CARE_CATEGORIES[topic.category][1];
+  // For light, spot, humidity and soil the category is also the tile's headline.
+  const catLabel = topic.key === 'feed' || topic.key === 'repot' ? 'Icon' : 'Icon and headline';
+  const select = h('select', { value: f[topic.category], onchange: (e) => { f[topic.category] = e.target.value; redraw(); } },
+    h('option', { value: '' }, 'Not set'), options.map(([v, label]) => h('option', { value: v }, label)));
+  const text = countedText(f, topic.text, { budget: TILE_BUDGET[topic.text], max: DB_LIMIT[topic.text], onChange: redraw });
+  const note = countedText(f, `note_${topic.note}`, { budget: NOTE_LIMIT, max: NOTE_LIMIT, rows: 3 });
+  const numberField = (label, name, attrs, hint) => h('label', { class: 'field' }, label,
+    h('input', { value: f[name], ...attrs, oninput: (e) => { f[name] = e.target.value; redraw(); } }), hint ? h('span', { class: 'hint' }, hint) : null);
+
+  const extras = topic.key === 'feed'
+    ? [
+        (() => { const amount = countedText(f, 'feed_amount', { budget: TILE_BUDGET.feed_amount, max: DB_LIMIT.feed_amount, onChange: redraw });
+          return h('label', { class: 'field' }, h('span', { class: 'field-top' }, 'How much', amount.count), amount.box, h('span', { class: 'hint' }, 'e.g. “Half strength”. The tile’s second line.')); })(),
+        h('div', { class: 'pair' },
+          numberField('Feed every (days)', 'feed_interval_days', { type: 'number', min: 1, max: 90, step: 1, inputmode: 'numeric' }),
+          numberField('Feed in months', 'feed_months', { maxlength: 40 }, '1 = January, e.g. “3, 4, 5, 6, 7, 8, 9”.')),
+      ]
+    : topic.key === 'repot'
+      ? [numberField('Repot every (months)', 'repot_every_months', { type: 'number', min: 1, max: 120, step: 1, inputmode: 'numeric' }, 'Blank for plants grown in the ground.')]
+      : [];
+
+  return h('section', { class: `topic fam-${topic.family}` },
+    header,
+    h('div', { class: 'topic-body' },
+      h('div', { class: 'topic-fields' },
+        h('label', { class: 'field' }, catLabel, select),
+        h('label', { class: 'field' }, h('span', { class: 'field-top' }, topic.key === 'feed' ? 'Feed' : 'Tile text', text.count), text.box,
+          topic.hint ? h('span', { class: 'hint' }, topic.hint) : null),
+        extras,
+        h('label', { class: 'field' }, h('span', { class: 'field-top' }, 'Fuller note', note.count), note.box,
+          h('span', { class: 'hint' }, 'What the lookup found; the tile text summarises it.'))),
+      h('div', { class: 'topic-preview' }, h('span', { class: 'hint' }, 'In the app'), preview.holder)));
+}
+
+/** The care editor. `m` holds { care, form, careMsg }: the Make tab's state, or the Care tab's. */
 function careCard(m, step = '3') {
   const f = m.form;
   const row = m.care;
@@ -786,42 +919,49 @@ function careCard(m, step = '3') {
     : row.reviewed ? h('span', { class: 'pill ok' }, 'Reviewed') : h('span', { class: 'pill warn' }, 'Not reviewed');
   const field = (label, name, props = {}, hint) => h('label', { class: 'field' }, label,
     h('input', { value: f[name], oninput: (e) => (f[name] = e.target.value), ...props }), hint ? h('span', { class: 'hint' }, hint) : null);
-  return h('section', { class: 'card' },
+
+  // Pets: coral, and only shown in the app when the plant is toxic.
+  const petsPreview = h('div', { class: 'tile-preview fam-caution' });
+  const drawPets = () => {
+    const note = f.animal_toxicity.trim();
+    const lower = note.toLowerCase();
+    const icon = lower.includes('cat') && !lower.includes('dog') ? 'pets-cats' : lower.includes('dog') && !lower.includes('cat') ? 'pets-dogs' : 'pets-cats-and-dogs';
+    petsPreview.replaceChildren(...(note
+      ? [careIcon(icon, 32), h('div', { class: 'tile-label' }, 'Pets'), h('div', { class: 'tile-headline' }, note)]
+      : [h('div', { class: 'tile-detail' }, 'No tile: not toxic, or not known.')]));
+  };
+  drawPets();
+
+  return h('section', { class: 'card care-editor' },
     cardHead(step, `Care for ${row.species_scientific}`, status),
-    lede('Cloche decides how often a plant is watered. Check it, fix anything that’s off, then tick that it’s reviewed.'),
+    lede('Cloche decides how often a plant is watered. Check each card, fix anything that’s off, then tick that it’s reviewed.'),
     row.review_note ? notice('warn', `Flagged by the lookup: ${row.review_note}. Saving as reviewed clears it.`) : null,
     !isNew ? h('p', { class: 'small muted' }, sources.length ? '' : 'No sources recorded.',
       sources.slice(0, 4).map((s, i) => [i ? ' · ' : 'Sources: ', /^https?:\/\//.test(s.url) ? h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' }, s.title || s.url) : (s.title || '')])) : null,
-    h('div', { class: 'grid2' },
-      field('Water every (days)', 'watering_interval_days', { type: 'number', min: 1, max: 365, step: 1, inputmode: 'numeric' }, 'The default the app suggests. People can change it.'),
-      h('label', { class: 'field' }, 'Lives', h('select', { onchange: (e) => (f.typical_environment = e.target.value), value: f.typical_environment },
-        h('option', { value: 'indoor' }, 'Indoors'), h('option', { value: 'outdoor' }, 'Outdoors')), h('span', { class: 'hint' }, 'How it is usually grown in Ireland and the UK.')),
-      field('Common name', 'species_common', { maxlength: 60 }),
-      field('Light', 'light', { maxlength: 60 }),
-      field('Humidity', 'humidity', { maxlength: 60 }),
-      field('Toxic to animals', 'animal_toxicity', { maxlength: 200 }, 'Filled in by the lookup. Write only “Toxic to cats and dogs”, “Toxic to cats” or “Toxic to dogs”. Leave blank if it isn’t toxic: nothing shows.'),
-      h('label', { class: 'field' }, 'Plant type', h('select', { onchange: (e) => (f.plant_type = e.target.value), value: f.plant_type },
-        h('option', { value: '' }, 'Not set'), PLANT_TYPES.map(([v, name]) => h('option', { value: v }, name))),
-        h('span', { class: 'hint' }, 'What the greenhouse filter groups it under in the app.')),
-      field('Where to put it', 'placement', { maxlength: 90 }, 'A short phrase, e.g. “Bright spot near a window, away from radiators”.'),
-      field('Soil', 'soil', { maxlength: 80 })),
-    h('h3', { class: 'subhead' }, 'Feeding and repotting'),
-    h('p', { class: 'small muted' }, 'Not shown in the app yet: feeding and repotting reminders come in Phase 3. Leave the feed fields blank for a plant that needs no feed.'),
-    h('div', { class: 'grid2' },
-      field('Feed', 'feed_type', { maxlength: 60 }, 'The kind, never a brand, e.g. “Balanced liquid feed”.'),
-      field('How much', 'feed_amount', { maxlength: 50 }, 'e.g. “Half strength”.'),
-      field('Feed every (days)', 'feed_interval_days', { type: 'number', min: 1, max: 90, step: 1, inputmode: 'numeric' }),
-      field('Feed in months', 'feed_months', { maxlength: 40 }, '1 = January, e.g. “3, 4, 5, 6, 7, 8, 9”.'),
-      field('Repot every (months)', 'repot_every_months', { type: 'number', min: 1, max: 120, step: 1, inputmode: 'numeric' }, 'Blank for plants grown in the ground.'),
-      field('Repotting', 'repot_notes', { maxlength: 100 }, 'When and how, as a short phrase.')),
-    h('h3', { class: 'subhead' }, 'Fuller notes'),
-    h('p', { class: 'small muted' }, 'What the lookup found, a sentence or two per field. The short text above summarises these; keep them in agreement.'),
-    h('div', { class: 'grid2' }, CARE_NOTE_FIELDS.map(([key, label]) => h('label', { class: 'field' }, label,
-      h('textarea', { rows: 3, maxlength: NOTE_LIMIT, oninput: (e) => (f[`note_${key}`] = e.target.value), value: f[`note_${key}`] })))),
-    h('h3', { class: 'subhead' }, 'Icons'),
-    h('p', { class: 'small muted' }, 'Which icon each care tile shows in the app. Keep them in line with the text above.'),
-    h('div', { class: 'grid2' }, Object.keys(CARE_CATEGORIES).map((name) => categorySelect(f, name))),
-    row.toxic_to_pets !== undefined ? h('p', { class: 'small muted' }, `Toxicity flags (not shown in the app; use the note above): pets ${triState(row.toxic_to_pets)}, children ${triState(row.toxic_to_children)}.`) : null,
+
+    h('section', { class: 'topic fam-basics' },
+      h('header', {}, h('h3', {}, 'Basics')),
+      h('div', { class: 'grid4' },
+        field('Common name', 'species_common', { maxlength: 60 }),
+        field('Water every (days)', 'watering_interval_days', { type: 'number', min: 1, max: 365, step: 1, inputmode: 'numeric' }, 'The default the app suggests.'),
+        h('label', { class: 'field' }, 'Lives', h('select', { onchange: (e) => (f.typical_environment = e.target.value), value: f.typical_environment },
+          h('option', { value: 'indoor' }, 'Indoors'), h('option', { value: 'outdoor' }, 'Outdoors')), h('span', { class: 'hint' }, 'Usually, in Ireland and the UK.')),
+        h('label', { class: 'field' }, 'Plant type', h('select', { onchange: (e) => (f.plant_type = e.target.value), value: f.plant_type },
+          h('option', { value: '' }, 'Not set'), PLANT_TYPES.map(([v, name]) => h('option', { value: v }, name))),
+          h('span', { class: 'hint' }, 'The greenhouse filter.')))),
+
+    h('section', { class: 'topic fam-caution' },
+      h('header', {}, careIcon('pets-cats-and-dogs', 40), h('h3', {}, 'Pets')),
+      h('div', { class: 'topic-body' },
+        h('div', { class: 'topic-fields' },
+          h('label', { class: 'field' }, 'Toxic to animals',
+            h('input', { value: f.animal_toxicity, maxlength: 200, oninput: (e) => { f.animal_toxicity = e.target.value; drawPets(); } }),
+            h('span', { class: 'hint' }, 'Only “Toxic to cats and dogs”, “Toxic to cats” or “Toxic to dogs”. Blank if it isn’t toxic: nothing shows.')),
+          row.toxic_to_pets !== undefined ? h('p', { class: 'small muted' }, `Lookup flags (not shown in the app): pets ${triState(row.toxic_to_pets)}, children ${triState(row.toxic_to_children)}.`) : null),
+        h('div', { class: 'topic-preview' }, h('span', { class: 'hint' }, 'In the app'), petsPreview))),
+
+    CARE_TOPICS.map((topic) => topicCard(topic, f)),
+
     h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: f.reviewed, onchange: (e) => (f.reviewed = e.target.checked) }),
       h('span', {}, 'I have checked this care. Labels are only made for reviewed care, so a scan always shows something right.')),
     h('div', { class: 'row' }, btn(isNew ? 'Save care' : 'Save changes', () => saveCareClicked(m))),

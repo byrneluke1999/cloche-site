@@ -150,3 +150,42 @@ dialog form { display: grid; gap: 14px; }
 /* A heading inside a card, e.g. "Feeding and repotting" in the care editor. */
 .subhead { font: 600 1rem/1.3 "Sora", system-ui, sans-serif; margin: 20px 0 4px; }
 .notice.warn { color: var(--warn, #8A4F0E); border: 1px solid currentColor; background: transparent; }
+
+/* care editor: one card per care topic, in the app's colours (cloche-app care-palette.ts) */
+.fam-basics { --tile: var(--card); --edge: var(--line); --ink: var(--text); }
+.fam-water { --tile: #EDF4FA; --edge: #CFE1EF; --disc: #DCEBF5; --ink: #2F5F86; }
+.fam-sun { --tile: #FBF6E6; --edge: #EFE2B8; --disc: #F4E7BE; --ink: #7A5C10; }
+.fam-earth { --tile: #F6EFE8; --edge: #E6D7C6; --disc: #EBDDCC; --ink: #6B4A33; }
+.fam-feed { --tile: #F1F4E6; --edge: #D8E0BC; --disc: #E1E8C8; --ink: #4E5C24; }
+.fam-caution { --tile: #FBEEE8; --edge: #F0CDBE; --disc: #F6D9CC; --ink: #8A3A1C; }
+@media (prefers-color-scheme: dark) {
+  .fam-water { --tile: #141E26; --edge: #24384A; --disc: #1E2F3B; --ink: #9CC4E4; }
+  .fam-sun { --tile: #1F1A10; --edge: #3B3220; --disc: #3A3020; --ink: #E3C677; }
+  .fam-earth { --tile: #1F1712; --edge: #3A2C21; --disc: #35281E; --ink: #D9B796; }
+  .fam-feed { --tile: #191D11; --edge: #323B21; --disc: #2C331C; --ink: #B7C77E; }
+  .fam-caution { --tile: #24130E; --edge: #4A2A1F; --disc: #3D2219; --ink: #F2A98C; }
+}
+.care-editor { gap: 14px; }
+.topic { background: var(--tile); border: 1px solid var(--edge); border-radius: 14px; padding: 14px 16px; display: grid; gap: 12px; }
+.topic > header { display: flex; align-items: center; gap: 10px; }
+.topic > header h3 { color: var(--ink); font-size: 1.05rem; }
+.care-icon, .care-icon img { display: block; flex: none; }
+.topic-body { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 260px; align-items: start; }
+@media (max-width: 760px) { .topic-body { grid-template-columns: minmax(0, 1fr); } }
+.topic-fields { display: grid; gap: 12px; align-content: start; }
+.topic label.field { color: var(--text); }
+.topic input, .topic select, .topic textarea { background: var(--card); border-color: var(--edge); }
+.topic textarea { resize: vertical; field-sizing: content; min-height: 42px; line-height: 1.45; }
+.field-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.count { font: 500 .78rem "JetBrains Mono", ui-monospace, monospace; color: var(--muted); }
+.count.over { color: var(--danger); font-weight: 700; }
+.pair { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; align-items: start; }
+.grid4 { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); align-items: start; }
+.topic-preview { display: grid; gap: 6px; position: sticky; top: 12px; }
+.topic-preview > .hint { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+/* the app's tile: half the phone's width, its paddings and type */
+.tile-preview { width: 176px; background: var(--tile); border: 1px solid var(--edge); border-radius: 16px; padding: 12px; display: grid; gap: 2px; align-content: start; box-shadow: 0 0 0 4px var(--card); }
+.tile-preview .care-icon { margin-bottom: 4px; }
+.tile-label { color: var(--ink); font-size: 12px; line-height: 16px; font-weight: 600; }
+.tile-headline { font-size: 15px; line-height: 20px; font-weight: 600; color: var(--text); }
+.tile-detail { font-size: 13px; line-height: 18px; color: var(--muted); }
