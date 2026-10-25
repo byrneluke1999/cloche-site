@@ -27,7 +27,8 @@ const st = {
   stats: new Map(),
   queue: [],
   review: [], // admin_care_queue: unreviewed species, most-used first
-  reviewing: null, // { care, form, careMsg } while one is open on the Review tab
+  reviewing: null, // { care, form, careMsg } while one is open on the Care tab
+  careSearch: '', // filter for the Care tab's list of every species
   make: freshMake(),
   filter: { shop: '', text: '', archived: false },
   banner: null,
@@ -517,7 +518,7 @@ const TABS = [
   ['make', 'Make a label'],
   ['labels', 'Labels'],
   ['shops', 'Shops'],
-  ['review', 'Care to review'],
+  ['review', 'Care'],
 ];
 
 function render() {
@@ -573,8 +574,21 @@ const careFormFrom = (row) => ({
   soil_kind: row?.soil_kind ?? '',
   feed_kind: row?.feed_kind ?? '',
   repot_kind: row?.repot_kind ?? '',
+  ...Object.fromEntries(CARE_NOTE_FIELDS.map(([key]) => [`note_${key}`, row?.care_notes?.[key] ?? ''])),
   reviewed: row?.reviewed ?? false,
 });
+
+// The fuller note kept beside each short field (species_care.care_notes, migration
+// 20261026000800): what the lookup found that the tile text had to leave out.
+const CARE_NOTE_FIELDS = [
+  ['light', 'Light'],
+  ['humidity', 'Humidity'],
+  ['placement', 'Spot'],
+  ['soil', 'Soil'],
+  ['feed', 'Feeding'],
+  ['repot', 'Repotting'],
+];
+const NOTE_LIMIT = 300;
 
 // The categories that pick each tile's icon in the app (species_care check constraints,
 // migration 20261026000700). Same order and words as the app's tiles.
@@ -775,6 +789,7 @@ function careCard(m, step = '3') {
   return h('section', { class: 'card' },
     cardHead(step, `Care for ${row.species_scientific}`, status),
     lede('Cloche decides how often a plant is watered. Check it, fix anything that’s off, then tick that it’s reviewed.'),
+    row.review_note ? notice('warn', `Flagged by the lookup: ${row.review_note}. Saving as reviewed clears it.`) : null,
     !isNew ? h('p', { class: 'small muted' }, sources.length ? '' : 'No sources recorded.',
       sources.slice(0, 4).map((s, i) => [i ? ' · ' : 'Sources: ', /^https?:\/\//.test(s.url) ? h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' }, s.title || s.url) : (s.title || '')])) : null,
     h('div', { class: 'grid2' },
@@ -799,6 +814,10 @@ function careCard(m, step = '3') {
       field('Feed in months', 'feed_months', { maxlength: 40 }, '1 = January, e.g. “3, 4, 5, 6, 7, 8, 9”.'),
       field('Repot every (months)', 'repot_every_months', { type: 'number', min: 1, max: 120, step: 1, inputmode: 'numeric' }, 'Blank for plants grown in the ground.'),
       field('Repotting', 'repot_notes', { maxlength: 100 }, 'When and how, as a short phrase.')),
+    h('h3', { class: 'subhead' }, 'Fuller notes'),
+    h('p', { class: 'small muted' }, 'What the lookup found, a sentence or two per field. The short text above summarises these; keep them in agreement.'),
+    h('div', { class: 'grid2' }, CARE_NOTE_FIELDS.map(([key, label]) => h('label', { class: 'field' }, label,
+      h('textarea', { rows: 3, maxlength: NOTE_LIMIT, oninput: (e) => (f[`note_${key}`] = e.target.value), value: f[`note_${key}`] })))),
     h('h3', { class: 'subhead' }, 'Icons'),
     h('p', { class: 'small muted' }, 'Which icon each care tile shows in the app. Keep them in line with the text above.'),
     h('div', { class: 'grid2' }, Object.keys(CARE_CATEGORIES).map((name) => categorySelect(f, name))),
@@ -832,6 +851,11 @@ function careValues(f) {
     repot_every_months: optionalInt(f.repot_every_months, 1, 120, 'Repot every'),
     repot_notes: f.repot_notes.trim() || null,
     ...Object.fromEntries(Object.keys(CARE_CATEGORIES).map((name) => [name, f[name] || null])),
+    care_notes: Object.fromEntries(
+      CARE_NOTE_FIELDS.map(([key]) => [key, f[`note_${key}`].trim()]).filter(([, note]) => note)
+    ),
+    // Checked by a person: whatever the lookup flagged has been looked at.
+    ...(f.reviewed ? { review_note: null } : {}),
     reviewed: !!f.reviewed,
   };
 }
@@ -1086,8 +1110,6 @@ function changeShop(tag) {
   ]);
 }
 
-// ------------------------------------------------------------------ shops
-
 // ------------------------------------------------------------------ care to review
 
 function reviewView() {
@@ -1097,30 +1119,51 @@ function reviewView() {
       h('div', { class: 'row' }, btn('← Back to the list', () => { st.reviewing = null; render(); }, 'secondary small')),
       careCard(r, null));
   }
-  const intro = h('section', { class: 'card' },
+  const open = (care) => {
+    st.reviewing = { care, form: careFormFrom(care), careMsg: null };
+    render();
+    window.scrollTo(0, 0);
+  };
+  const typeOf = (care) => PLANT_TYPES.find(([v]) => v === care?.plant_type)?.[1];
+
+  // 1. Care nobody has checked yet, most-used first.
+  const queue = h('section', { class: 'card' },
     cardHead(null, 'Care to review'),
-    lede('Care the lookup wrote that nobody has checked yet, most-used first. Open one, fix anything that’s off, tick that it’s reviewed and save.'));
-  if (st.review === null) {
-    return h('div', { class: 'card-stack' }, intro,
-      notice('error', 'The review list needs the Phase 2 migration (admin_care_queue). Run supabase db push, then reload.'));
-  }
-  if (!st.review.length) return h('div', { class: 'card-stack' }, intro, notice('ok', 'All care is reviewed.'));
-  return h('div', { class: 'card-stack' }, intro,
+    lede('Care the lookup wrote that nobody has checked yet, most-used first. Open one, fix anything that’s off, tick that it’s reviewed and save.'),
+    st.review === null
+      ? notice('error', 'The review list needs the Phase 2 migration (admin_care_queue). Run supabase db push, then reload.')
+      : !st.review.length
+        ? notice('ok', 'All care is reviewed.')
+        : h('div', { class: 'tablewrap' }, h('table', {},
+            h('thead', {}, h('tr', {}, ['Species', 'Type', 'Plants', 'People', ''].map((t) => h('th', {}, t)))),
+            h('tbody', {}, st.review.map((q) => {
+              const care = careFor(q.species_scientific);
+              return h('tr', {},
+                h('td', {}, h('em', {}, q.species_scientific), care?.species_common ? h('div', { class: 'small muted' }, care.species_common) : null,
+                  care?.review_note ? h('div', {}, h('span', { class: 'pill warn' }, care.review_note)) : null),
+                h('td', {}, typeOf(care) || h('span', { class: 'pill warn' }, 'not set')),
+                h('td', {}, q.plants), h('td', {}, q.people),
+                h('td', { class: 'actions' }, care ? btn('Review', () => open(care), 'small') : null));
+            })))));
+
+  // 2. Every species, to edit any of them, reviewed or not.
+  const term = st.careSearch.trim().toLowerCase();
+  const shown = st.care.filter((c) => !term || `${c.species_scientific} ${c.species_common || ''}`.toLowerCase().includes(term));
+  const search = h('input', { type: 'search', placeholder: 'Search by name', value: st.careSearch, 'aria-label': 'Search species',
+    oninput: (e) => { st.careSearch = e.target.value; render(); document.querySelector('input[type=search]')?.focus(); } });
+  const all = h('section', { class: 'card' },
+    cardHead(null, `All species (${st.care.length})`),
+    lede('Every species Cloche has care for. Open one to change its care, notes or icons.'),
+    search,
     h('div', { class: 'tablewrap' }, h('table', {},
-      h('thead', {}, h('tr', {}, ['Species', 'Type', 'Plants', 'People', ''].map((t) => h('th', {}, t)))),
-      h('tbody', {}, st.review.map((q) => {
-        const care = careFor(q.species_scientific);
-        const type = PLANT_TYPES.find(([v]) => v === care?.plant_type)?.[1];
-        return h('tr', {},
-          h('td', {}, h('em', {}, q.species_scientific), care?.species_common ? h('div', { class: 'small muted' }, care.species_common) : null),
-          h('td', {}, type || h('span', { class: 'pill warn' }, 'not set')),
-          h('td', {}, q.plants), h('td', {}, q.people),
-          h('td', { class: 'actions' }, care ? btn('Review', () => {
-            st.reviewing = { care, form: careFormFrom(care), careMsg: null };
-            render();
-            window.scrollTo(0, 0);
-          }, 'small') : null));
-      })))));
+      h('thead', {}, h('tr', {}, ['Species', 'Type', 'Status', ''].map((t) => h('th', {}, t)))),
+      h('tbody', {}, shown.map((care) => h('tr', {},
+        h('td', {}, h('em', {}, care.species_scientific), care.species_common ? h('div', { class: 'small muted' }, care.species_common) : null),
+        h('td', {}, typeOf(care) || '—'),
+        h('td', {}, care.reviewed ? h('span', { class: 'pill ok' }, 'Reviewed') : h('span', { class: 'pill warn' }, care.review_note ? 'Flagged' : 'Not reviewed')),
+        h('td', { class: 'actions' }, btn('Edit', () => open(care), 'secondary small')))))))) ;
+
+  return h('div', { class: 'card-stack' }, queue, all);
 }
 
 // ------------------------------------------------------------------ shops

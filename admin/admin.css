@@ -149,3 +149,4 @@ dialog form { display: grid; gap: 14px; }
 
 /* A heading inside a card, e.g. "Feeding and repotting" in the care editor. */
 .subhead { font: 600 1rem/1.3 "Sora", system-ui, sans-serif; margin: 20px 0 4px; }
+.notice.warn { color: var(--warn, #8A4F0E); border: 1px solid currentColor; background: transparent; }
