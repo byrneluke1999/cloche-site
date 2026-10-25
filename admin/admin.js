@@ -567,8 +567,32 @@ const careFormFrom = (row) => ({
   feed_months: (row?.feed_months ?? []).join(', '),
   repot_every_months: row?.repot_every_months ?? '',
   repot_notes: row?.repot_notes ?? '',
+  light_level: row?.light_level ?? '',
+  humidity_level: row?.humidity_level ?? '',
+  spot_kind: row?.spot_kind ?? '',
+  soil_kind: row?.soil_kind ?? '',
+  feed_kind: row?.feed_kind ?? '',
+  repot_kind: row?.repot_kind ?? '',
   reviewed: row?.reviewed ?? false,
 });
+
+// The categories that pick each tile's icon in the app (species_care check constraints,
+// migration 20261026000700). Same order and words as the app's tiles.
+const CARE_CATEGORIES = {
+  light_level: ['Light icon', [['full_sun', 'Full sun'], ['bright_indirect', 'Bright, indirect'], ['part_shade', 'Part shade'], ['shade', 'Shade, low light']]],
+  humidity_level: ['Humidity icon', [['low', 'Low, dry air'], ['average', 'Average room'], ['high', 'High, humid']]],
+  spot_kind: ['Spot icon', [['windowsill', 'Windowsill'], ['near_window', 'Near a window'], ['in_room', 'In the room'], ['garden_border', 'Garden border'], ['patio_pot', 'Patio pot']]],
+  soil_kind: ['Soil icon', [['multipurpose', 'Multipurpose compost'], ['free_draining', 'Free-draining, gritty'], ['ericaceous', 'Ericaceous'], ['bark', 'Bark mix']]],
+  feed_kind: ['Fertiliser icon', [['balanced_liquid', 'Balanced liquid'], ['high_potash', 'High-potash'], ['granules', 'Slow-release granules'], ['specialist', 'Half strength or specialist'], ['none', 'Not needed']]],
+  repot_kind: ['Repotting icon', [['regular', 'Every so often'], ['rarely', 'Rarely'], ['in_ground', 'In the ground']]],
+};
+
+function categorySelect(f, name) {
+  const [label, options] = CARE_CATEGORIES[name];
+  return h('label', { class: 'field' }, label,
+    h('select', { onchange: (e) => (f[name] = e.target.value), value: f[name] },
+      h('option', { value: '' }, 'Not set'), options.map(([v, text]) => h('option', { value: v }, text))));
+}
 
 /** "3, 4, 5" → [3, 4, 5]; months must be 1 to 12. Empty means no feeding months. */
 function parseMonths(text) {
@@ -775,6 +799,9 @@ function careCard(m, step = '3') {
       field('Feed in months', 'feed_months', { maxlength: 40 }, '1 = January, e.g. “3, 4, 5, 6, 7, 8, 9”.'),
       field('Repot every (months)', 'repot_every_months', { type: 'number', min: 1, max: 120, step: 1, inputmode: 'numeric' }, 'Blank for plants grown in the ground.'),
       field('Repotting', 'repot_notes', { maxlength: 100 }, 'When and how, as a short phrase.')),
+    h('h3', { class: 'subhead' }, 'Icons'),
+    h('p', { class: 'small muted' }, 'Which icon each care tile shows in the app. Keep them in line with the text above.'),
+    h('div', { class: 'grid2' }, Object.keys(CARE_CATEGORIES).map((name) => categorySelect(f, name))),
     row.toxic_to_pets !== undefined ? h('p', { class: 'small muted' }, `Toxicity flags (not shown in the app; use the note above): pets ${triState(row.toxic_to_pets)}, children ${triState(row.toxic_to_children)}.`) : null,
     h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: f.reviewed, onchange: (e) => (f.reviewed = e.target.checked) }),
       h('span', {}, 'I have checked this care. Labels are only made for reviewed care, so a scan always shows something right.')),
@@ -804,6 +831,7 @@ function careValues(f) {
     feed_months: parseMonths(f.feed_months),
     repot_every_months: optionalInt(f.repot_every_months, 1, 120, 'Repot every'),
     repot_notes: f.repot_notes.trim() || null,
+    ...Object.fromEntries(Object.keys(CARE_CATEGORIES).map((name) => [name, f[name] || null])),
     reviewed: !!f.reviewed,
   };
 }
