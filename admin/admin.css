@@ -189,3 +189,12 @@ dialog form { display: grid; gap: 14px; }
 .tile-label { color: var(--ink); font-size: 12px; line-height: 16px; font-weight: 600; }
 .tile-headline { font-size: 15px; line-height: 20px; font-weight: 600; color: var(--text); }
 .tile-detail { font-size: 13px; line-height: 18px; color: var(--muted); }
+/* feeding months: twelve toggles */
+div.field { display: grid; gap: 4px; }
+.field-label { font-weight: 600; font-size: .9rem; }
+div.field > .hint { color: var(--muted); font-size: .8rem; }
+.months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
+@media (max-width: 560px) { .months { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+button.month { font: 600 .78rem "Figtree", system-ui, sans-serif; min-height: 36px; padding: 0; border-radius: 8px; border: 1px solid var(--edge); background: var(--card); color: var(--muted); cursor: pointer; }
+button.month:hover { border-color: var(--ink); }
+button.month[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--card); }

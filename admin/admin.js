@@ -868,6 +868,40 @@ const CARE_TOPICS = [
     hint: 'When and how, as a short phrase.' },
 ];
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/**
+ * The feeding months as twelve toggles, January to December. The form keeps them as the same
+ * "3, 4, 5" text that careValues already reads.
+ */
+function monthPicker(f, onChange) {
+  const chosen = new Set(String(f.feed_months).split(/[\s,]+/).filter(Boolean).map(Number));
+  const save = () => {
+    f.feed_months = [...chosen].sort((a, b) => a - b).join(', ');
+    onChange?.();
+  };
+  const boxes = MONTH_NAMES.map((name, i) => {
+    const month = i + 1;
+    const box = h('button', {
+      type: 'button',
+      class: 'month',
+      title: name,
+      'aria-label': name,
+      'aria-pressed': chosen.has(month) ? 'true' : 'false',
+      onclick: () => {
+        if (chosen.has(month)) chosen.delete(month); else chosen.add(month);
+        box.setAttribute('aria-pressed', chosen.has(month) ? 'true' : 'false');
+        save();
+      },
+    }, name.slice(0, 3));
+    return box;
+  });
+  return h('div', { class: 'field' },
+    h('span', { class: 'field-label', id: 'feed-months-label' }, 'Feed in'),
+    h('div', { class: 'months', role: 'group', 'aria-labelledby': 'feed-months-label' }, boxes),
+    h('span', { class: 'hint' }, 'Click the months to feed in. None for a plant that needs no feed.'));
+}
+
 /** One care topic's card: icon, tile text, the topic's extra fields, fuller note, live tile. */
 function topicCard(topic, f) {
   const preview = tilePreview(topic, f);
@@ -889,8 +923,8 @@ function topicCard(topic, f) {
         (() => { const amount = countedText(f, 'feed_amount', { budget: TILE_BUDGET.feed_amount, max: DB_LIMIT.feed_amount, onChange: redraw });
           return h('label', { class: 'field' }, h('span', { class: 'field-top' }, 'How much', amount.count), amount.box, h('span', { class: 'hint' }, 'e.g. “Half strength”. The tile’s second line.')); })(),
         h('div', { class: 'pair' },
-          numberField('Feed every (days)', 'feed_interval_days', { type: 'number', min: 1, max: 90, step: 1, inputmode: 'numeric' }),
-          numberField('Feed in months', 'feed_months', { maxlength: 40 }, '1 = January, e.g. “3, 4, 5, 6, 7, 8, 9”.')),
+          numberField('Feed every (days)', 'feed_interval_days', { type: 'number', min: 1, max: 90, step: 1, inputmode: 'numeric' })),
+        monthPicker(f, redraw),
       ]
     : topic.key === 'repot'
       ? [numberField('Repot every (months)', 'repot_every_months', { type: 'number', min: 1, max: 120, step: 1, inputmode: 'numeric' }, 'Blank for plants grown in the ground.')]
