@@ -559,8 +559,34 @@ const careFormFrom = (row) => ({
   humidity: row?.humidity ?? '',
   animal_toxicity: row?.animal_toxicity ?? '',
   plant_type: row?.plant_type ?? '',
+  placement: row?.placement ?? '',
+  soil: row?.soil ?? '',
+  feed_type: row?.feed_type ?? '',
+  feed_amount: row?.feed_amount ?? '',
+  feed_interval_days: row?.feed_interval_days ?? '',
+  feed_months: (row?.feed_months ?? []).join(', '),
+  repot_every_months: row?.repot_every_months ?? '',
+  repot_notes: row?.repot_notes ?? '',
   reviewed: row?.reviewed ?? false,
 });
+
+/** "3, 4, 5" → [3, 4, 5]; months must be 1 to 12. Empty means no feeding months. */
+function parseMonths(text) {
+  const parts = text.split(/[\s,]+/).filter(Boolean);
+  const months = parts.map(Number);
+  if (months.some((m) => !Number.isInteger(m) || m < 1 || m > 12)) {
+    throw new Error('Feed in months: whole numbers from 1 (January) to 12, separated by commas.');
+  }
+  return [...new Set(months)].sort((a, b) => a - b);
+}
+
+/** An optional whole number in a range, or null when blank. */
+function optionalInt(text, min, max, label) {
+  if (String(text).trim() === '') return null;
+  const n = Number(text);
+  if (!Number.isInteger(n) || n < min || n > max) throw new Error(`${label}: a whole number from ${min} to ${max}, or blank.`);
+  return n;
+}
 
 // The groups the app's greenhouse filter uses. Same list as species_care's check constraint.
 const PLANT_TYPES = [
@@ -737,7 +763,18 @@ function careCard(m, step = '3') {
       field('Toxic to animals', 'animal_toxicity', { maxlength: 200 }, 'Filled in by the lookup. Write only “Toxic to cats and dogs”, “Toxic to cats” or “Toxic to dogs”. Leave blank if it isn’t toxic: nothing shows.'),
       h('label', { class: 'field' }, 'Plant type', h('select', { onchange: (e) => (f.plant_type = e.target.value), value: f.plant_type },
         h('option', { value: '' }, 'Not set'), PLANT_TYPES.map(([v, name]) => h('option', { value: v }, name))),
-        h('span', { class: 'hint' }, 'What the greenhouse filter groups it under in the app.'))),
+        h('span', { class: 'hint' }, 'What the greenhouse filter groups it under in the app.')),
+      field('Where to put it', 'placement', { maxlength: 200 }, 'One sentence, e.g. “A metre or two from a bright window, away from radiators”.'),
+      field('Soil', 'soil', { maxlength: 160 })),
+    h('h3', { class: 'subhead' }, 'Feeding and repotting'),
+    h('p', { class: 'small muted' }, 'Not shown in the app yet: feeding and repotting reminders come in Phase 3. Leave the feed fields blank for a plant that needs no feed.'),
+    h('div', { class: 'grid2' },
+      field('Feed', 'feed_type', { maxlength: 120 }, 'The kind, never a brand, e.g. “Balanced liquid houseplant feed”.'),
+      field('How much', 'feed_amount', { maxlength: 120 }, 'e.g. “Half the strength on the label”.'),
+      field('Feed every (days)', 'feed_interval_days', { type: 'number', min: 1, max: 90, step: 1, inputmode: 'numeric' }),
+      field('Feed in months', 'feed_months', { maxlength: 40 }, '1 = January, e.g. “3, 4, 5, 6, 7, 8, 9”.'),
+      field('Repot every (months)', 'repot_every_months', { type: 'number', min: 1, max: 120, step: 1, inputmode: 'numeric' }, 'Blank for plants grown in the ground.'),
+      field('Repotting', 'repot_notes', { maxlength: 200 }, 'When and how, in one sentence.')),
     row.toxic_to_pets !== undefined ? h('p', { class: 'small muted' }, `Toxicity flags (not shown in the app; use the note above): pets ${triState(row.toxic_to_pets)}, children ${triState(row.toxic_to_children)}.`) : null,
     h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: f.reviewed, onchange: (e) => (f.reviewed = e.target.checked) }),
       h('span', {}, 'I have checked this care. Labels are only made for reviewed care, so a scan always shows something right.')),
@@ -759,6 +796,14 @@ function careValues(f) {
     humidity: f.humidity.trim() || null,
     animal_toxicity: f.animal_toxicity.trim() || null,
     plant_type: f.plant_type || null,
+    placement: f.placement.trim() || null,
+    soil: f.soil.trim() || null,
+    feed_type: f.feed_type.trim() || null,
+    feed_amount: f.feed_amount.trim() || null,
+    feed_interval_days: optionalInt(f.feed_interval_days, 1, 90, 'Feed every'),
+    feed_months: parseMonths(f.feed_months),
+    repot_every_months: optionalInt(f.repot_every_months, 1, 120, 'Repot every'),
+    repot_notes: f.repot_notes.trim() || null,
     reviewed: !!f.reviewed,
   };
 }
