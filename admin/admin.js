@@ -26,6 +26,9 @@ const st = {
   tags: [],
   stats: new Map(),
   queue: [],
+  review: [], // admin_care_queue: unreviewed species, most-used first
+  reviewing: null, // { care, form, careMsg } while one is open on the Care tab
+  careSearch: '', // filter for the Care tab's list of every species
   make: freshMake(),
   filter: { shop: '', text: '', archived: false },
   banner: null,
@@ -494,6 +497,9 @@ async function refreshAll() {
     st.care = care;
     st.tags = tags;
     st.stats = new Map((stats || []).map((s) => [s.shop_id, s]));
+    // The review queue is newer than the rest (Phase 2). Until its migration is applied the tab
+    // just says so, and the other tabs still work.
+    st.review = await ok(sb.rpc('admin_care_queue')).catch(() => null);
     st.loaded = true;
     st.banner = null;
   } catch (err) {
@@ -512,11 +518,12 @@ const TABS = [
   ['make', 'Make a label'],
   ['labels', 'Labels'],
   ['shops', 'Shops'],
+  ['review', 'Care'],
 ];
 
 function render() {
   if (!st.user) return;
-  const view = st.tab === 'labels' ? labelsView() : st.tab === 'shops' ? shopsView() : makeView();
+  const view = st.tab === 'labels' ? labelsView() : st.tab === 'shops' ? shopsView() : st.tab === 'review' ? reviewView() : makeView();
   const top = h('div', { class: 'top' }, h('div', { class: 'wrap bar' },
     h('img', { src: '/favicon.svg', alt: '' }),
     h('h1', {}, 'Cloche admin'),
@@ -552,8 +559,82 @@ const careFormFrom = (row) => ({
   light: row?.light ?? '',
   humidity: row?.humidity ?? '',
   animal_toxicity: row?.animal_toxicity ?? '',
+  plant_type: row?.plant_type ?? '',
+  placement: row?.placement ?? '',
+  soil: row?.soil ?? '',
+  feed_type: row?.feed_type ?? '',
+  feed_amount: row?.feed_amount ?? '',
+  feed_interval_days: row?.feed_interval_days ?? '',
+  feed_months: (row?.feed_months ?? []).join(', '),
+  repot_every_months: row?.repot_every_months ?? '',
+  repot_notes: row?.repot_notes ?? '',
+  light_level: row?.light_level ?? '',
+  humidity_level: row?.humidity_level ?? '',
+  spot_kind: row?.spot_kind ?? '',
+  soil_kind: row?.soil_kind ?? '',
+  feed_kind: row?.feed_kind ?? '',
+  repot_kind: row?.repot_kind ?? '',
+  ...Object.fromEntries(CARE_NOTE_FIELDS.map(([key]) => [`note_${key}`, row?.care_notes?.[key] ?? ''])),
   reviewed: row?.reviewed ?? false,
 });
+
+// The fuller note kept beside each short field (species_care.care_notes, migration
+// 20261026000800): what the lookup found that the tile text had to leave out.
+const CARE_NOTE_FIELDS = [
+  ['light', 'Light'],
+  ['humidity', 'Humidity'],
+  ['placement', 'Spot'],
+  ['soil', 'Soil'],
+  ['feed', 'Feeding'],
+  ['repot', 'Repotting'],
+];
+const NOTE_LIMIT = 300;
+
+// The categories that pick each tile's icon in the app (species_care check constraints,
+// migration 20261026000700). Same order and words as the app's tiles.
+const CARE_CATEGORIES = {
+  light_level: ['Light icon', [['full_sun', 'Full sun'], ['bright_indirect', 'Bright, indirect'], ['part_shade', 'Part shade'], ['shade', 'Shade, low light']]],
+  humidity_level: ['Humidity icon', [['low', 'Low, dry air'], ['average', 'Average room'], ['high', 'High, humid']]],
+  spot_kind: ['Spot icon', [['windowsill', 'Windowsill'], ['near_window', 'Near a window'], ['in_room', 'In the room'], ['garden_border', 'Garden border'], ['patio_pot', 'Patio pot']]],
+  soil_kind: ['Soil icon', [['multipurpose', 'Multipurpose compost'], ['free_draining', 'Free-draining, gritty'], ['ericaceous', 'Ericaceous'], ['bark', 'Bark mix']]],
+  feed_kind: ['Fertiliser icon', [['balanced_liquid', 'Balanced liquid'], ['high_potash', 'High-potash'], ['granules', 'Slow-release granules'], ['specialist', 'Half strength or specialist'], ['none', 'Not needed']]],
+  repot_kind: ['Repotting icon', [['regular', 'Every so often'], ['rarely', 'Rarely'], ['in_ground', 'In the ground']]],
+};
+
+function categorySelect(f, name) {
+  const [label, options] = CARE_CATEGORIES[name];
+  return h('label', { class: 'field' }, label,
+    h('select', { onchange: (e) => (f[name] = e.target.value), value: f[name] },
+      h('option', { value: '' }, 'Not set'), options.map(([v, text]) => h('option', { value: v }, text))));
+}
+
+/** "3, 4, 5" → [3, 4, 5]; months must be 1 to 12. Empty means no feeding months. */
+function parseMonths(text) {
+  const parts = text.split(/[\s,]+/).filter(Boolean);
+  const months = parts.map(Number);
+  if (months.some((m) => !Number.isInteger(m) || m < 1 || m > 12)) {
+    throw new Error('Feed in months: whole numbers from 1 (January) to 12, separated by commas.');
+  }
+  return [...new Set(months)].sort((a, b) => a - b);
+}
+
+/** An optional whole number in a range, or null when blank. */
+function optionalInt(text, min, max, label) {
+  if (String(text).trim() === '') return null;
+  const n = Number(text);
+  if (!Number.isInteger(n) || n < min || n > max) throw new Error(`${label}: a whole number from ${min} to ${max}, or blank.`);
+  return n;
+}
+
+// The groups the app's greenhouse filter uses. Same list as species_care's check constraint.
+const PLANT_TYPES = [
+  ['herb', 'Herbs'],
+  ['succulent', 'Succulents & cacti'],
+  ['flowering', 'Flowering'],
+  ['foliage', 'Leafy'],
+  ['tree', 'Trees & shrubs'],
+  ['edible', 'Fruit & veg'],
+];
 
 function adoptCare(row) {
   const m = st.make;
@@ -695,7 +776,8 @@ async function lookUp() {
   }
 }
 
-function careCard(m) {
+/** The care editor. `m` holds { care, form, careMsg }: the Make tab's state, or the Review tab's. */
+function careCard(m, step = '3') {
   const f = m.form;
   const row = m.care;
   const isNew = !!row.manual;
@@ -705,8 +787,9 @@ function careCard(m) {
   const field = (label, name, props = {}, hint) => h('label', { class: 'field' }, label,
     h('input', { value: f[name], oninput: (e) => (f[name] = e.target.value), ...props }), hint ? h('span', { class: 'hint' }, hint) : null);
   return h('section', { class: 'card' },
-    cardHead('3', `Care for ${row.species_scientific}`, status),
+    cardHead(step, `Care for ${row.species_scientific}`, status),
     lede('Cloche decides how often a plant is watered. Check it, fix anything that’s off, then tick that it’s reviewed.'),
+    row.review_note ? notice('warn', `Flagged by the lookup: ${row.review_note}. Saving as reviewed clears it.`) : null,
     !isNew ? h('p', { class: 'small muted' }, sources.length ? '' : 'No sources recorded.',
       sources.slice(0, 4).map((s, i) => [i ? ' · ' : 'Sources: ', /^https?:\/\//.test(s.url) ? h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer' }, s.title || s.url) : (s.title || '')])) : null,
     h('div', { class: 'grid2' },
@@ -714,13 +797,34 @@ function careCard(m) {
       h('label', { class: 'field' }, 'Lives', h('select', { onchange: (e) => (f.typical_environment = e.target.value), value: f.typical_environment },
         h('option', { value: 'indoor' }, 'Indoors'), h('option', { value: 'outdoor' }, 'Outdoors')), h('span', { class: 'hint' }, 'How it is usually grown in Ireland and the UK.')),
       field('Common name', 'species_common', { maxlength: 60 }),
-      field('Light', 'light', { maxlength: 120 }),
-      field('Humidity', 'humidity', { maxlength: 120 }),
-      field('Toxic to animals', 'animal_toxicity', { maxlength: 200 }, 'Filled in by the lookup. Write only “Toxic to cats and dogs”, “Toxic to cats” or “Toxic to dogs”. Leave blank if it isn’t toxic: nothing shows.')),
+      field('Light', 'light', { maxlength: 60 }),
+      field('Humidity', 'humidity', { maxlength: 60 }),
+      field('Toxic to animals', 'animal_toxicity', { maxlength: 200 }, 'Filled in by the lookup. Write only “Toxic to cats and dogs”, “Toxic to cats” or “Toxic to dogs”. Leave blank if it isn’t toxic: nothing shows.'),
+      h('label', { class: 'field' }, 'Plant type', h('select', { onchange: (e) => (f.plant_type = e.target.value), value: f.plant_type },
+        h('option', { value: '' }, 'Not set'), PLANT_TYPES.map(([v, name]) => h('option', { value: v }, name))),
+        h('span', { class: 'hint' }, 'What the greenhouse filter groups it under in the app.')),
+      field('Where to put it', 'placement', { maxlength: 90 }, 'A short phrase, e.g. “Bright spot near a window, away from radiators”.'),
+      field('Soil', 'soil', { maxlength: 80 })),
+    h('h3', { class: 'subhead' }, 'Feeding and repotting'),
+    h('p', { class: 'small muted' }, 'Not shown in the app yet: feeding and repotting reminders come in Phase 3. Leave the feed fields blank for a plant that needs no feed.'),
+    h('div', { class: 'grid2' },
+      field('Feed', 'feed_type', { maxlength: 60 }, 'The kind, never a brand, e.g. “Balanced liquid feed”.'),
+      field('How much', 'feed_amount', { maxlength: 50 }, 'e.g. “Half strength”.'),
+      field('Feed every (days)', 'feed_interval_days', { type: 'number', min: 1, max: 90, step: 1, inputmode: 'numeric' }),
+      field('Feed in months', 'feed_months', { maxlength: 40 }, '1 = January, e.g. “3, 4, 5, 6, 7, 8, 9”.'),
+      field('Repot every (months)', 'repot_every_months', { type: 'number', min: 1, max: 120, step: 1, inputmode: 'numeric' }, 'Blank for plants grown in the ground.'),
+      field('Repotting', 'repot_notes', { maxlength: 100 }, 'When and how, as a short phrase.')),
+    h('h3', { class: 'subhead' }, 'Fuller notes'),
+    h('p', { class: 'small muted' }, 'What the lookup found, a sentence or two per field. The short text above summarises these; keep them in agreement.'),
+    h('div', { class: 'grid2' }, CARE_NOTE_FIELDS.map(([key, label]) => h('label', { class: 'field' }, label,
+      h('textarea', { rows: 3, maxlength: NOTE_LIMIT, oninput: (e) => (f[`note_${key}`] = e.target.value), value: f[`note_${key}`] })))),
+    h('h3', { class: 'subhead' }, 'Icons'),
+    h('p', { class: 'small muted' }, 'Which icon each care tile shows in the app. Keep them in line with the text above.'),
+    h('div', { class: 'grid2' }, Object.keys(CARE_CATEGORIES).map((name) => categorySelect(f, name))),
     row.toxic_to_pets !== undefined ? h('p', { class: 'small muted' }, `Toxicity flags (not shown in the app; use the note above): pets ${triState(row.toxic_to_pets)}, children ${triState(row.toxic_to_children)}.`) : null,
     h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: f.reviewed, onchange: (e) => (f.reviewed = e.target.checked) }),
       h('span', {}, 'I have checked this care. Labels are only made for reviewed care, so a scan always shows something right.')),
-    h('div', { class: 'row' }, btn(isNew ? 'Save care' : 'Save changes', () => saveCareClicked())),
+    h('div', { class: 'row' }, btn(isNew ? 'Save care' : 'Save changes', () => saveCareClicked(m))),
     notice(m.careMsg?.kind, m.careMsg?.text)
   );
 }
@@ -737,26 +841,44 @@ function careValues(f) {
     light: f.light.trim() || null,
     humidity: f.humidity.trim() || null,
     animal_toxicity: f.animal_toxicity.trim() || null,
+    plant_type: f.plant_type || null,
+    placement: f.placement.trim() || null,
+    soil: f.soil.trim() || null,
+    feed_type: f.feed_type.trim() || null,
+    feed_amount: f.feed_amount.trim() || null,
+    feed_interval_days: optionalInt(f.feed_interval_days, 1, 90, 'Feed every'),
+    feed_months: parseMonths(f.feed_months),
+    repot_every_months: optionalInt(f.repot_every_months, 1, 120, 'Repot every'),
+    repot_notes: f.repot_notes.trim() || null,
+    ...Object.fromEntries(Object.keys(CARE_CATEGORIES).map((name) => [name, f[name] || null])),
+    care_notes: Object.fromEntries(
+      CARE_NOTE_FIELDS.map(([key]) => [key, f[`note_${key}`].trim()]).filter(([, note]) => note)
+    ),
+    // Checked by a person: whatever the lookup flagged has been looked at.
+    ...(f.reviewed ? { review_note: null } : {}),
     reviewed: !!f.reviewed,
   };
 }
 
-async function saveCare() {
-  const m = st.make;
+async function saveCare(m = st.make) {
   const values = careValues(m.form);
   const row = m.care.manual
     ? await ok(sb.from('species_care').insert({ species_scientific: m.care.species_scientific, ...values, model: 'manual' }).select().single())
     : await ok(sb.from('species_care').update(values).eq('species_scientific', m.care.species_scientific).select().single());
   await refreshAll();
-  adoptCare(row);
-  m.commonName = m.commonName || row.species_common || '';
+  if (m === st.make) {
+    adoptCare(row);
+    m.commonName = m.commonName || row.species_common || '';
+  } else {
+    m.care = row;
+    m.form = careFormFrom(row);
+  }
 }
 
-async function saveCareClicked() {
-  const m = st.make;
+async function saveCareClicked(m = st.make) {
   m.careMsg = null;
   try {
-    await saveCare();
+    await saveCare(m);
     m.careMsg = { kind: 'ok', text: 'Care saved.' };
   } catch (err) {
     m.careMsg = { kind: 'error', text: explain(err) };
@@ -986,6 +1108,62 @@ function changeShop(tag) {
     }),
     btn('Cancel', close, 'secondary'),
   ]);
+}
+
+// ------------------------------------------------------------------ care to review
+
+function reviewView() {
+  const r = st.reviewing;
+  if (r) {
+    return h('div', { class: 'card-stack' },
+      h('div', { class: 'row' }, btn('← Back to the list', () => { st.reviewing = null; render(); }, 'secondary small')),
+      careCard(r, null));
+  }
+  const open = (care) => {
+    st.reviewing = { care, form: careFormFrom(care), careMsg: null };
+    render();
+    window.scrollTo(0, 0);
+  };
+  const typeOf = (care) => PLANT_TYPES.find(([v]) => v === care?.plant_type)?.[1];
+
+  // 1. Care nobody has checked yet, most-used first.
+  const queue = h('section', { class: 'card' },
+    cardHead(null, 'Care to review'),
+    lede('Care the lookup wrote that nobody has checked yet, most-used first. Open one, fix anything that’s off, tick that it’s reviewed and save.'),
+    st.review === null
+      ? notice('error', 'The review list needs the Phase 2 migration (admin_care_queue). Run supabase db push, then reload.')
+      : !st.review.length
+        ? notice('ok', 'All care is reviewed.')
+        : h('div', { class: 'tablewrap' }, h('table', {},
+            h('thead', {}, h('tr', {}, ['Species', 'Type', 'Plants', 'People', ''].map((t) => h('th', {}, t)))),
+            h('tbody', {}, st.review.map((q) => {
+              const care = careFor(q.species_scientific);
+              return h('tr', {},
+                h('td', {}, h('em', {}, q.species_scientific), care?.species_common ? h('div', { class: 'small muted' }, care.species_common) : null,
+                  care?.review_note ? h('div', {}, h('span', { class: 'pill warn' }, care.review_note)) : null),
+                h('td', {}, typeOf(care) || h('span', { class: 'pill warn' }, 'not set')),
+                h('td', {}, q.plants), h('td', {}, q.people),
+                h('td', { class: 'actions' }, care ? btn('Review', () => open(care), 'small') : null));
+            })))));
+
+  // 2. Every species, to edit any of them, reviewed or not.
+  const term = st.careSearch.trim().toLowerCase();
+  const shown = st.care.filter((c) => !term || `${c.species_scientific} ${c.species_common || ''}`.toLowerCase().includes(term));
+  const search = h('input', { type: 'search', placeholder: 'Search by name', value: st.careSearch, 'aria-label': 'Search species',
+    oninput: (e) => { st.careSearch = e.target.value; render(); document.querySelector('input[type=search]')?.focus(); } });
+  const all = h('section', { class: 'card' },
+    cardHead(null, `All species (${st.care.length})`),
+    lede('Every species Cloche has care for. Open one to change its care, notes or icons.'),
+    search,
+    h('div', { class: 'tablewrap' }, h('table', {},
+      h('thead', {}, h('tr', {}, ['Species', 'Type', 'Status', ''].map((t) => h('th', {}, t)))),
+      h('tbody', {}, shown.map((care) => h('tr', {},
+        h('td', {}, h('em', {}, care.species_scientific), care.species_common ? h('div', { class: 'small muted' }, care.species_common) : null),
+        h('td', {}, typeOf(care) || '—'),
+        h('td', {}, care.reviewed ? h('span', { class: 'pill ok' }, 'Reviewed') : h('span', { class: 'pill warn' }, care.review_note ? 'Flagged' : 'Not reviewed')),
+        h('td', { class: 'actions' }, btn('Edit', () => open(care), 'secondary small')))))))) ;
+
+  return h('div', { class: 'card-stack' }, queue, all);
 }
 
 // ------------------------------------------------------------------ shops
