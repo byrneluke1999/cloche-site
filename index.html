@@ -273,16 +273,12 @@
 })();
 </script>
 <script>
-  // Slide the "now available" pop-up down shortly after load; once dismissed, it stays away.
+  // Slide the "now available" pop-up down shortly after every load; dismissing hides it until the next one.
   (function () {
     var el = document.getElementById('launch');
-    var gone = false;
-    try { gone = localStorage.getItem('cloche-launch-dismissed') === '1'; } catch (e) {}
-    if (gone) { el.remove(); return; }
     setTimeout(function () { el.classList.add('in'); }, 500);
     el.querySelector('button').addEventListener('click', function () {
       el.classList.remove('in');
-      try { localStorage.setItem('cloche-launch-dismissed', '1'); } catch (e) {}
       setTimeout(function () { el.remove(); }, 600);
     });
   })();
