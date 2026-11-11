@@ -41,7 +41,7 @@
     <div class="code" id="code" aria-label="Label code"></div>
     <!-- Shown once Cloche is on the App Store (APP_STORE_LIVE in the script below). -->
     <div id="live" hidden>
-      <p><a class="button" id="store" href="https://apps.apple.com/app/id6822829404">Get Cloche on the App Store</a></p>
+      <p><a class="button" id="store" href="https://apps.apple.com/app/cloche/id6822829404">Get Cloche on the App Store</a></p>
       <ol class="steps">
         <li>Install Cloche and sign in.</li>
         <li>Scan the label on your pot again. It opens straight to adding this plant.</li>
@@ -65,7 +65,7 @@
   (function () {
     // Flip to true the day Cloche is live on the App Store (check apps.apple.com/app/id6822829404).
     // Until then the page says it isn't there yet, and the app banner and store button stay off.
-    var APP_STORE_LIVE = false;
+    var APP_STORE_LIVE = true;
     var APP_STORE_ID = '6822829404';
     // The public (anon) key, the same one the app and the admin page ship with. tag_preview
     // returns only the plant's name and the shop's name for a label code.
