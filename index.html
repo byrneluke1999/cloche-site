@@ -122,12 +122,27 @@
   .soon { margin-top:32px; background:var(--card); border-radius:22px; padding:22px 26px; display:flex; flex-wrap:wrap; gap:14px 28px; align-items:center; justify-content:space-between; }
   .soon strong { display:block; font:600 1.1rem "Sora", sans-serif; letter-spacing:-.01em; }
   .soon span { color:var(--muted); font-size:.97rem; }
+  /* "Now available" pop-up that slides down at the top of the hero */
+  .hero { position:relative; }
+  .launch { position:absolute; top:18px; left:50%; z-index:2; display:flex; align-items:center; gap:4px; padding:5px 6px 5px 16px; border-radius:999px; background:rgba(250,247,241,.12); box-shadow:inset 0 0 0 1px rgba(163,181,102,.45); backdrop-filter:blur(6px); transform:translate(-50%, -140%); opacity:0; transition:transform .6s cubic-bezier(.2,.9,.3,1.15), opacity .4s ease; white-space:nowrap; }
+  .launch.in { transform:translate(-50%, 0); opacity:1; }
+  .launch a { color:var(--linen); text-decoration:none; font:600 .95rem "Figtree", sans-serif; display:flex; align-items:center; gap:8px; }
+  .launch a b { color:var(--sprout); font-weight:600; }
+  .launch .dot { width:8px; height:8px; border-radius:50%; background:var(--sprout); box-shadow:0 0 0 0 rgba(163,181,102,.6); animation:pulse 2.4s ease-out infinite; }
+  .launch button { border:0; background:none; color:#DCE5D2; font-size:1.15rem; line-height:1; width:30px; height:30px; border-radius:50%; cursor:pointer; }
+  .launch button:hover { background:rgba(250,247,241,.12); }
+  @keyframes pulse { 0% { box-shadow:0 0 0 0 rgba(163,181,102,.6); } 70%,100% { box-shadow:0 0 0 8px rgba(163,181,102,0); } }
+  @media (prefers-reduced-motion: reduce) { .launch { transition:opacity .3s ease; transform:translate(-50%, 0); } .launch .dot { animation:none; } }
 </style>
 </head>
 <body>
 <nav class="topnav" aria-label="Main"><div class="bar"><a class="mark" href="/"><svg class="m-light" viewBox="0 0 120 120" aria-hidden="true"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#24402F"/><path d="M60 22 C82 22 100 40 100 66 H60 Z" fill="#2E4F3A"/><path d="M40 84 H60 V102 H40 Z" fill="#2E4F3A"/><path d="M20 84 H100 M40 66 V84 M60 66 V84 M80 66 V84" stroke="#3A5E45" stroke-width="2.5" fill="none"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#7A5A40" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#7A5A40"/></svg><svg class="m-dark" viewBox="0 0 120 120" aria-hidden="true"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#24402F"/><path d="M60 22 C82 22 100 40 100 66 H60 Z" fill="#2E4F3A"/><path d="M40 84 H60 V102 H40 Z" fill="#2E4F3A"/><path d="M20 84 H100 M40 66 V84 M60 66 V84 M80 66 V84" stroke="#3A5E45" stroke-width="2.5" fill="none"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#C49A78" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#C49A78"/></svg><span>Cloche</span></a><a class="nav " href="/#plants">For plant lovers</a><a class="nav shop" href="/garden-centres/">For garden centres</a><a class="nav contact" href="/#contact">Contact</a></div></nav>
 <main>
 <header class="hero">
+  <div class="launch" id="launch" role="status">
+    <a href="https://apps.apple.com/app/cloche/id6822829404"><span class="dot" aria-hidden="true"></span>Now available on the App Store <b aria-hidden="true">&rarr;</b></a>
+    <button type="button" aria-label="Dismiss">&times;</button>
+  </div>
   <div class="wrap">
     <svg class="hero-logo" width="190" height="190" role="img" aria-label="Cloche" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Cloche logo for dark grounds"><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" fill="#24402F"/><path d="M60 22 C82 22 100 40 100 66 H60 Z" fill="#2E4F3A"/><path d="M40 84 H60 V102 H40 Z" fill="#2E4F3A"/><path d="M20 84 H100 M40 66 V84 M60 66 V84 M80 66 V84" stroke="#3A5E45" stroke-width="2.5" fill="none"/><path d="M60 102 V87.6" stroke="#A3B566" stroke-width="4.8" stroke-linecap="round" fill="none"/><path d="M60 90 C60 80.4 67.2 75.6 75.6 75.6 C75.6 84 69.6 90 60 90 Z M60 93.6 C60 85.2 52.8 81.6 45.6 81.6 C45.6 88.8 51.6 93.6 60 93.6 Z" fill="#A3B566"/><g fill="none" stroke="#C49A78" stroke-linecap="round" stroke-linejoin="round"><path d="M20 66 H100 M40 66 C40 44 48 29 60 22 M80 66 C80 44 72 29 60 22 M60 22 V66" stroke-width="3.5"/><path d="M20 102 V66 C20 40 38 22 60 22 C82 22 100 40 100 66 V102 Z" stroke-width="6"/><path d="M60 22 V13" stroke-width="4"/><path d="M10 102 H110" stroke-width="6"/></g><circle cx="60" cy="10.5" r="4.5" fill="#C49A78"/></svg>
     <div class="brand">Cloche</div>
@@ -256,6 +271,21 @@
   var last = svg.clientWidth;
   window.addEventListener('resize', function () { if (Math.abs(svg.clientWidth - last) > 40) { last = svg.clientWidth; grow(); } });
 })();
+</script>
+<script>
+  // Slide the "now available" pop-up down shortly after load; once dismissed, it stays away.
+  (function () {
+    var el = document.getElementById('launch');
+    var gone = false;
+    try { gone = localStorage.getItem('cloche-launch-dismissed') === '1'; } catch (e) {}
+    if (gone) { el.remove(); return; }
+    setTimeout(function () { el.classList.add('in'); }, 500);
+    el.querySelector('button').addEventListener('click', function () {
+      el.classList.remove('in');
+      try { localStorage.setItem('cloche-launch-dismissed', '1'); } catch (e) {}
+      setTimeout(function () { el.remove(); }, 600);
+    });
+  })();
 </script>
 </body>
 </html>
